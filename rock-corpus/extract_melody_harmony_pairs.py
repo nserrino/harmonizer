@@ -122,8 +122,25 @@ def parse_and_write_song(harmony_path, melody_path, output_path):
         else:
             raise Exception("Output path exists: " + output_path)
 
-    harmony = get_harmony_data(harmony_path)
-    melody = get_melody_data(melody_path)
+    harmony = None
+    melody = None
+
+    try:
+        harmony = get_harmony_data(harmony_path)
+    except Exception as e:
+        print "Failed to get harmony data for", harmony_path, e
+        return
+
+    try:
+        melody = get_melody_data(melody_path)
+    except Exception as e:
+        print "Failed to get melody data for", melody_path, e
+        return
+
+    if len(harmony) == 0 or len(melody) == 0:
+        print "Skipping", output_path
+        return
+
     result = merge_harmony_and_melody(harmony, melody)
     f = open(output_path, 'w')
     f.write(json.dumps(result))
