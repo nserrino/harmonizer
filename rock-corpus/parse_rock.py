@@ -33,6 +33,9 @@ def get_melody_data(filepath):
 	return output_data	
 
 
+# The harmony files and the melody files each track their own lineage but we want
+# to see how they change together. So we use this function to parse them both at once
+# into a single output format.
 def merge_harmony_and_melody(harmony, melody):
 	harmony_done = False
 	melody_done = False
@@ -55,6 +58,7 @@ def merge_harmony_and_melody(harmony, melody):
 			last_record['relative_harmony'] = None
 			last_record['key'] = None
 
+		# TODO: Remove repetitive boilerplate/cleanup
 		if (next_melody_beat < next_harmony_beat):
 			new_record = last_record
 			new_record['beat'] = next_melody_beat
@@ -98,11 +102,12 @@ def merge_harmony_and_melody(harmony, melody):
 	return output_data
 
 
-harmony = get_harmony_data(INPUT_HARMONY)
-melody = get_melody_data(INPUT_MELODY)
+if __name__ == "main":
+	harmony = get_harmony_data(INPUT_HARMONY)
+	melody = get_melody_data(INPUT_MELODY)
 
-f = open("output.json", 'w')
-result = merge_harmony_and_melody(harmony, melody)
-print result
-f.write(json.dumps(result))
-f.close()
+	f = open("output.json", 'w')
+	result = merge_harmony_and_melody(harmony, melody)
+	print result
+	f.write(json.dumps(result))
+	f.close()
