@@ -1,0 +1,57 @@
+{
+	"folders": [
+    {
+      "file_exclude_patterns": [
+        ".tags",
+        ".tags_sorted_by_file",
+        ".gemtags",
+        "*.tar*",
+        "*.tgz",
+        "*pb2.py",
+        "*.whl",
+        "*.deb",
+        "*.rpm",
+        ".gitignore"
+      ],
+      "folder_exclude_patterns": [
+        ".idea",
+        "Build",
+        "XcodeBuild",
+        "linters",
+        "node_modules",
+        "dist"
+      ],
+      "follow_symlinks": true,
+      "path": "."
+    }
+  ],
+  "settings": {
+    "ensure_newline_at_eof_on_save": true,
+    "tab_size": 4,
+    "translate_tabs_to_spaces": true,
+    "trim_trailing_white_space_on_save": true
+  },
+  "SublimeLinter": {
+    "linters": {
+      "cppcheck": {
+        "@disable": false,
+        "args": [
+          "--enable=performance,warning",
+          "--language=c++"
+        ],
+        "excludes": []
+      },
+      "cpplint": {
+        "@disable": false,
+        "args": [
+          "--filter=-build/c++11",
+          "--linelength=100"
+        ],
+        "excludes": []
+      },
+      "flake8": {
+        "max-line-length": 100
+      }
+    }
+  }
+}
