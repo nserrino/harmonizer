@@ -1,10 +1,13 @@
 import argparse
 import json
 import os
+import pandas
+
 
 CLEAN = True
 MELODY_EXT = ".nlt"
 HARMONY_EXT = ".clt"
+SAMPLING_DELTA = 0.01   # in beats
 
 
 def get_harmony_data(filepath):
@@ -16,9 +19,13 @@ def get_harmony_data(filepath):
         data = line.split()
         if data[2] == 'End':
             break
-
-        output = [float(data[0]), float(data[1]), data[2], int(data[3]), int(data[4]),
-                  int(data[5]), int(data[6])]
+        try:
+            output = {}
+            output['beat'] = float(data[1])
+            output['key'] = int(data[5])
+            output['relative_harmony'] = int(data[3])
+        except Exception:
+            print "Line does not fit expected schema (skipping):", line
         output_data.append(output)
 
     return output_data
@@ -30,8 +37,14 @@ def get_melody_data(filepath):
     output_data = []
     for line in melody_lines:
         data = line.split()
-        output = [float(data[0]), float(data[1]), int(data[2]), int(data[3])]
-        output_data.append(output)
+        try:
+            output = {}
+            output['beat'] = float(data[1])
+            output['relative_melody'] = int(data[3])
+            output_data.append(output)
+        except Exception:
+            print "Line does not fit expected schema (skipping):", line
+
     return output_data
 
 
@@ -48,67 +61,21 @@ def extract_harmony_to_record(new_record, harmony, index):
 # to see how they change together. So we use this function to parse them both at once
 # into a single output format.
 def merge_harmony_and_melody(harmony, melody):
-    harmony_done = False
-    melody_done = False
-    output_data = []
-    current_harmony_index = 0
-    current_melody_index = 0
+    harmony_start_beat = harmony[0]['beat']
+    harmony_end_beat = harmony[-1]['beat']
+    melody_start_beat = melody[0]['beat']
+    melody_end_beat = melody[-1]['beat']
 
-    while not harmony_done and not melody_done:
-        # Check if melody or harmony changes first
-        next_harmony_beat = harmony[current_harmony_index][1]
-        next_melody_beat = melody[current_melody_index][1]
+    start_time = max(harmony_start_beat, melody_start_beat)
+    end_time = min(harmony_end_beat, melody_end_beat)
+    total_time = end_time - start_time
 
-        new_record = None
-        last_record = None
-        if len(output_data):
-            last_record = output_data[-1].copy()
-        else:
-            last_record = {}
-            last_record['relative_melody'] = None
-            last_record['relative_harmony'] = None
-            last_record['key'] = None
+    current_time = start_time
 
-        # TODO: Remove repetitive boilerplate/cleanup
-        if (next_melody_beat < next_harmony_beat):
-            new_record = last_record
-            new_record['beat'] = next_melody_beat
-            extract_melody_to_record(new_record, melody, current_melody_index)
+    for x in xrange(total_time / SAMPLING_DELTA):
+        current_time += SAMPLING_DELTA
 
-            if (current_melody_index < len(melody) - 1):
-                current_melody_index += 1
-            else:
-                melody_done = True
-        elif (next_harmony_beat < next_melody_beat):
-            new_record = last_record
-            new_record['beat'] = next_harmony_beat
-            extract_harmony_to_record(new_record, harmony, current_harmony_index)
 
-            if (current_harmony_index < len(harmony) - 1):
-                current_harmony_index += 1
-            else:
-                harmony_done = True
-        else:
-            new_record = last_record
-            new_record['beat'] = next_melody_beat
-            extract_melody_to_record(new_record, melody, current_melody_index)
-            extract_harmony_to_record(new_record, harmony, current_harmony_index)
-
-            if (current_melody_index < len(melody) - 1):
-                current_melody_index += 1
-            else:
-                melody_done = True
-
-            if (current_harmony_index < len(harmony) - 1):
-                current_harmony_index += 1
-            else:
-                harmony_done = True
-
-        # print new_record
-        output_data.append(new_record)
-        # print output_data
-
-    return output_data
 
 
 def parse_and_write_song(harmony_path, melody_path, output_path):
