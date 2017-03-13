@@ -23,6 +23,7 @@ def parse_and_write_song(harmony_path, melody_path, output_path):
         harmony = pandas.read_csv(harmony_path, header=None, delimiter=r"\s+")
         melody = pandas.read_csv(melody_path, header=None, delimiter=r"\s+")
     except:
+        print "Encountered error reading song for", output_path
         return
 
     harmony.dropna()
@@ -70,7 +71,7 @@ if __name__ == "__main__":
         for song in songs:
             harmony = os.path.join(harmony_path, song + HARMONY_EXT)
             melody = os.path.join(melody_path, song + MELODY_EXT)
-            output = os.path.join(dest_path, song + ".json")
+            output = os.path.join(dest_path, song + ".csv")
             parse_and_write_song(harmony, melody, output)
 
         print "Wrote", len(songs), "songs to", dest_path
