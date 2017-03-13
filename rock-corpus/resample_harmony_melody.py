@@ -8,7 +8,7 @@ MELODY_EXT = ".nlt"
 HARMONY_EXT = ".clt"
 
 
-def parse_and_write_song(harmony_path, melody_path, output_path):
+def parse_and_write_song(harmony_path, melody_path, output_path, store_as_json):
     output_dir = os.path.dirname(output_path)
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
@@ -49,7 +49,10 @@ def parse_and_write_song(harmony_path, melody_path, output_path):
     for col_name in int_columns:
         output[col_name] = output[col_name].astype(int)
 
-    output.to_csv(output_path, index=False)
+    if store_as_json:
+        output.to_json(output_path, orient="records")
+    else:
+        output.to_csv(output_path, index=False)
 
 
 if __name__ == "__main__":
@@ -57,6 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--harmony", help="Path to harmony file(s)", required=True)
     parser.add_argument("--melody", help="Path to melody file(s)", required=True)
     parser.add_argument("--dest", help="Output destination", required=True)
+    parser.add_argument("--json", help="Store as JSON", action="store_true")
     args = parser.parse_args()
     harmony_path = os.path.abspath(args.harmony)
     melody_path = os.path.abspath(args.melody)
@@ -71,9 +75,10 @@ if __name__ == "__main__":
         for song in songs:
             harmony = os.path.join(harmony_path, song + HARMONY_EXT)
             melody = os.path.join(melody_path, song + MELODY_EXT)
-            output = os.path.join(dest_path, song + ".csv")
-            parse_and_write_song(harmony, melody, output)
+            filename = song + ".json" if args.json else song + ".csv"
+            output = os.path.join(dest_path, filename)
+            parse_and_write_song(harmony, melody, output, args.json)
 
         print "Wrote", len(songs), "songs to", dest_path
     else:
-        parse_and_write_song(harmony_path, melody_path, dest_path)
+        parse_and_write_song(harmony_path, melody_path, dest_path, args.json)
