@@ -1,0 +1,20 @@
+{
+  "name": "harmonizer",
+  "version": "0.0.1",
+  "description": "An app that adds automatic harmonization to a melody",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "midi": "github:mudcube/MIDI.js"
+  },
+  "engines": {
+    "node": "4.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/nserrino/harmonizer"
+  },
+  "author": "Natalie Serrino",
+  "license": "MIT"
+}
