@@ -2,6 +2,7 @@
 <html xmlns = "http://www.w3.org/1999/xhtml">
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <script src="node_modules/jquery/dist/jquery.min.js"></script>
     <!-- polyfill -->
     <script src="node_modules/midi/inc/shim/Base64.js" type="text/javascript"></script>
     <script src="node_modules/midi/inc/shim/Base64binary.js" type="text/javascript"></script>
@@ -22,36 +23,43 @@
 window.onload = function () {
     MIDI.loadPlugin({
         soundfontUrl: "midi-js-soundfonts/FluidR3_GM/",
-        instrument: "electric_piano_2",
+        instrument: ["electric_piano_2", "acoustic_guitar_nylon"],
         // soundfontUrl: "node_modules/midi/examples/soundfont/",
         // instrument: "acoustic_grand_piano",
         onprogress: function(state, progress) {
             console.log(state, progress);
         },
         onsuccess: function() {
-            MIDI.programChange(0, MIDI.GM.byName["electric_piano_2"].number);
+            var SECONDS_PER_BEAT = 2,
+                HARMONY_OCTAVE_OFFSET = 4 * 12;
 
-            var notes = [{"time":3.464,"note":60},{"time":3.859,"note":59},{"time":4.255,"note":62},{"time":5.105,"note":62},{"time":5.742,"note":62},{"time":7.0,"note":62},{"time":7.21,"note":62},{"time":7.419,"note":60},{"time":7.628,"note":62},{"time":7.839,"note":65},{"time":8.683,"note":62},{"time":8.894,"note":60},{"time":9.105,"note":62},{"time":9.316,"note":60},{"time":9.529,"note":59},{"time":10.381,"note":60},{"time":10.595,"note":60},{"time":10.808,"note":59},{"time":11.021,"note":62},{"time":11.878,"note":62},{"time":12.521,"note":62},{"time":13.808,"note":62},{"time":14.022,"note":62},{"time":14.237,"note":60},{"time":14.452,"note":62},{"time":14.662,"note":65},{"time":15.503,"note":62},{"time":15.713,"note":60},{"time":15.923,"note":62},{"time":16.134,"note":60},{"time":16.35,"note":59},{"time":17.216,"note":60},{"time":17.432,"note":62},{"time":17.649,"note":62},{"time":17.865,"note":64},{"time":18.079,"note":63},{"time":18.293,"note":62},{"time":18.507,"note":60},{"time":18.936,"note":63},{"time":19.15,"note":64},{"time":19.364,"note":65},{"time":19.578,"note":66},{"time":19.792,"note":65},{"time":20.006,"note":64},{"time":20.22,"note":62},{"time":20.647,"note":59},{"time":20.861,"note":60},{"time":21.075,"note":59},{"time":21.289,"note":62},{"time":21.506,"note":55},{"time":22.157,"note":58},{"time":22.374,"note":60},{"time":22.808,"note":58},{"time":24.094,"note":60},{"time":24.308,"note":60},{"time":24.521,"note":59},{"time":24.735,"note":62},{"time":25.581,"note":62},{"time":26.215,"note":62},{"time":27.503,"note":60},{"time":27.718,"note":62},{"time":27.933,"note":60},{"time":28.149,"note":62},{"time":28.365,"note":65},{"time":29.23,"note":61},{"time":29.446,"note":62},{"time":29.662,"note":60},{"time":29.878,"note":62},{"time":29.986,"note":60},{"time":30.094,"note":59},{"time":31.174,"note":60},{"time":31.39,"note":59},{"time":31.605,"note":62},{"time":31.823,"note":62},{"time":32.04,"note":62},{"time":32.258,"note":62},{"time":32.475,"note":62},{"time":32.693,"note":62},{"time":33.128,"note":62},{"time":34.395,"note":60},{"time":34.605,"note":62},{"time":34.815,"note":60},{"time":35.025,"note":62},{"time":35.24,"note":65},{"time":36.103,"note":62},{"time":36.319,"note":60},{"time":36.534,"note":62},{"time":36.75,"note":60},{"time":36.966,"note":59},{"time":37.831,"note":62},{"time":38.048,"note":62},{"time":38.264,"note":62},{"time":38.48,"note":64},{"time":38.697,"note":63},{"time":38.914,"note":62},{"time":39.131,"note":60},{"time":39.566,"note":63},{"time":39.783,"note":64},{"time":40.0,"note":65},{"time":40.217,"note":66},{"time":40.434,"note":65},{"time":40.651,"note":64},{"time":40.868,"note":62},{"time":41.302,"note":59},{"time":41.519,"note":60},{"time":41.736,"note":59},{"time":41.953,"note":62},{"time":42.17,"note":55},{"time":42.82,"note":58},{"time":43.037,"note":60},{"time":43.47,"note":58},{"time":44.551,"note":62},{"time":44.766,"note":67},{"time":45.198,"note":64},{"time":45.414,"note":66},{"time":47.123,"note":67},{"time":47.345,"note":66},{"time":47.568,"note":64},{"time":47.791,"note":64},{"time":48.237,"note":66},{"time":48.46,"note":67},{"time":48.682,"note":64},{"time":48.905,"note":66},{"time":51.489,"note":62},{"time":51.708,"note":66},{"time":52.147,"note":67},{"time":54.073,"note":67},{"time":54.286,"note":66},{"time":54.499,"note":64},{"time":54.712,"note":64},{"time":55.137,"note":66},{"time":55.35,"note":67},{"time":55.776,"note":69},{"time":57.308,"note":69},{"time":58.17,"note":69},{"time":58.599,"note":59},{"time":58.813,"note":60},{"time":59.028,"note":59},{"time":59.242,"note":62},{"time":60.118,"note":62},{"time":60.774,"note":62},{"time":62.077,"note":60},{"time":62.294,"note":62},{"time":62.511,"note":60},{"time":62.728,"note":62},{"time":62.943,"note":65},{"time":63.806,"note":62},{"time":64.021,"note":60},{"time":64.237,"note":62},{"time":64.452,"note":60},{"time":64.669,"note":59},{"time":65.536,"note":59},{"time":65.752,"note":60},{"time":65.969,"note":59},{"time":66.186,"note":62},{"time":67.056,"note":62},{"time":67.708,"note":62},{"time":69.013,"note":62},{"time":69.231,"note":62},{"time":69.448,"note":60},{"time":69.666,"note":62},{"time":69.882,"note":65},{"time":70.748,"note":62},{"time":70.964,"note":60},{"time":71.181,"note":62},{"time":71.397,"note":60},{"time":71.618,"note":59},{"time":72.5,"note":60},{"time":72.72,"note":62},{"time":72.941,"note":62},{"time":73.161,"note":64},{"time":73.38,"note":63},{"time":73.599,"note":62},{"time":73.818,"note":60},{"time":74.256,"note":63},{"time":74.475,"note":64},{"time":74.694,"note":65},{"time":74.913,"note":66},{"time":75.133,"note":65},{"time":75.352,"note":64},{"time":75.572,"note":62},{"time":76.011,"note":59},{"time":76.231,"note":60},{"time":76.45,"note":59},{"time":76.67,"note":62},{"time":76.888,"note":55},{"time":77.544,"note":58},{"time":77.763,"note":60},{"time":78.2,"note":58},{"time":93.377,"note":62},{"time":93.595,"note":62},{"time":93.813,"note":63},{"time":94.031,"note":64},{"time":94.249,"note":63},{"time":94.466,"note":62},{"time":94.684,"note":60},{"time":95.119,"note":63},{"time":95.337,"note":64},{"time":95.555,"note":65},{"time":95.773,"note":66},{"time":95.993,"note":65},{"time":96.212,"note":64},{"time":96.432,"note":62},{"time":96.872,"note":59},{"time":97.092,"note":60},{"time":97.312,"note":59},{"time":97.532,"note":62},{"time":97.749,"note":55},{"time":98.402,"note":58},{"time":98.619,"note":60},{"time":99.054,"note":58},{"time":100.136,"note":62},{"time":100.352,"note":67},{"time":100.784,"note":66},{"time":102.732,"note":67},{"time":102.948,"note":66},{"time":103.163,"note":64},{"time":103.379,"note":64},{"time":103.811,"note":66},{"time":104.027,"note":67},{"time":104.243,"note":64},{"time":104.458,"note":66},{"time":105.112,"note":62},{"time":107.054,"note":62},{"time":107.267,"note":66},{"time":107.693,"note":67},{"time":109.656,"note":67},{"time":109.873,"note":66},{"time":110.091,"note":64},{"time":110.309,"note":64},{"time":110.745,"note":66},{"time":110.963,"note":67},{"time":111.398,"note":69},{"time":112.914,"note":69},{"time":113.772,"note":69},{"time":114.2,"note":59},{"time":114.413,"note":60},{"time":114.627,"note":59},{"time":114.841,"note":62},{"time":115.717,"note":62},{"time":116.374,"note":62},{"time":117.672,"note":60},{"time":117.888,"note":62},{"time":118.104,"note":60},{"time":118.32,"note":62},{"time":118.538,"note":65},{"time":119.414,"note":62},{"time":119.633,"note":60},{"time":119.851,"note":62},{"time":120.07,"note":60},{"time":120.287,"note":59},{"time":121.155,"note":60},{"time":121.372,"note":60},{"time":121.589,"note":59},{"time":121.806,"note":62},{"time":122.686,"note":62},{"time":123.346,"note":62},{"time":123.566,"note":60},{"time":123.672,"note":59},{"time":124.636,"note":60},{"time":124.85,"note":62},{"time":125.064,"note":60},{"time":125.278,"note":62},{"time":125.5,"note":65},{"time":126.391,"note":62},{"time":126.613,"note":60},{"time":126.836,"note":62},{"time":127.058,"note":60},{"time":127.271,"note":59},{"time":128.12,"note":62},{"time":128.332,"note":62},{"time":128.544,"note":62},{"time":128.756,"note":64},{"time":128.976,"note":63},{"time":129.195,"note":62},{"time":129.414,"note":60},{"time":129.853,"note":63},{"time":130.072,"note":64},{"time":130.291,"note":65},{"time":130.51,"note":66},{"time":130.728,"note":65},{"time":130.946,"note":64},{"time":131.164,"note":62},{"time":131.6,"note":59},{"time":131.818,"note":60},{"time":132.036,"note":59},{"time":132.254,"note":62},{"time":132.477,"note":55},{"time":133.146,"note":58},{"time":133.369,"note":60},{"time":133.815,"note":58},{"time":135.125,"note":59},{"time":135.343,"note":60},{"time":135.56,"note":59},{"time":135.778,"note":62},{"time":135.998,"note":55},{"time":136.657,"note":58},{"time":136.877,"note":60},{"time":137.316,"note":58},{"time":138.641,"note":59},{"time":138.862,"note":60},{"time":139.083,"note":59},{"time":139.304,"note":62},{"time":140.164,"note":62},{"time":140.81,"note":62}];
+            $.getJSON("a_hard_days_night_tdc.json", function(song) {
+                MIDI.programChange(0, MIDI.GM.byName["electric_piano_2"].number);
+                MIDI.programChange(1, MIDI.GM.byName["acoustic_guitar_nylon"].number);
 
-            for (var i = 0; i < notes.length; ++i) {
-                var note = notes[i]["note"], // the MIDI note
-                    noteTime = notes[i]["time"],
-                    nextNoteTime;
+                for (var i = 0; i < song.length; ++i) {
+                    var note = song[i]["Melody absolute pitch"], // the MIDI note
+                        beat = song[i]["Beats"],
+                        nextBeat;
 
-                if (i == notes.length - 1) {
-                    nextNoteTime = note["time"] + 3;
-                } else{
-                    nextNoteTime = notes[i + 1]["time"];
+                    var harmonyNote = song[i]["Harmony absolute root"] + HARMONY_OCTAVE_OFFSET;
+
+                    if (i == song.length - 1) {
+                        nextBeat = beat + 3;
+                    } else{
+                        nextBeat = song[i + 1]["Beats"];
+                    }
+
+                    var velocity = 100; // how hard the note hits
+                    // play the note
+                    MIDI.setVolume(0, 100);
+                    MIDI.noteOn(0, note, velocity, SECONDS_PER_BEAT * beat);
+                    MIDI.noteOff(0, note, SECONDS_PER_BEAT * nextBeat);
+
+                    MIDI.noteOn(1, harmonyNote, velocity, SECONDS_PER_BEAT * beat);
+                    MIDI.noteOff(1, harmonyNote, SECONDS_PER_BEAT * nextBeat);
                 }
-
-                delay = notes[i]["time"];
-
-                var velocity = 100; // how hard the note hits
-                // play the note
-                MIDI.setVolume(0, 100);
-                MIDI.noteOn(0, note, velocity, noteTime);
-                MIDI.noteOff(0, note, nextNoteTime);
-            }
+            });
         }
     });
 };

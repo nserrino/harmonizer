@@ -3,15 +3,13 @@
   "version": "0.0.1",
   "description": "An app that adds automatic harmonization to a melody",
   "scripts": {
-    "start": "node index.js"
+    "soundfonts": "git clone https://github.com/gleitz/midi-js-soundfonts"
   },
   "dependencies": {
     "eventjs": "^4.0.2",
     "http-server": "^0.9.0",
+    "jquery": "^3.1.1",
     "midi": "github:mudcube/MIDI.js"
-  },
-  "scripts": {
-    "soundfonts": "git clone https://github.com/gleitz/midi-js-soundfonts"
   },
   "engines": {
     "node": "4.0.0"
