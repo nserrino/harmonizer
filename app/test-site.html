@@ -25,8 +25,6 @@ window.onload = function () {
     MIDI.loadPlugin({
         soundfontUrl: "midi-js-soundfonts/FluidR3_GM/",
         instrument: ["electric_piano_2", "acoustic_guitar_nylon"],
-        // soundfontUrl: "node_modules/midi/examples/soundfont/",
-        // instrument: "acoustic_grand_piano",
         onprogress: function(state, progress) {
             console.log(state, progress);
         },
@@ -69,19 +67,17 @@ window.onload = function () {
                 'B': 11
             };
 
-            // require('bundle.js', function (beep) {
-            //   console.log(beep)
-            // });
-
             MIDI.programChange(0, MIDI.GM.byName["electric_piano_2"].number);
             MIDI.programChange(1, MIDI.GM.byName["acoustic_guitar_nylon"].number);
 
-            $.getJSON("my_girl_tdc.json", function(song) {
+            $.getJSON("a_hard_days_night_tdc.json", function(song) {
                 for (var i = 0; i < song.length; ++i) {
                     var romanNumeral = song[i]["Harmony Roman Numeral"],
                         numericKey = song[i]["Harmony key tonic"],
                         letterKey = TONIC_INT_TO_STRING[numericKey],
-                        beat = song[i]["Beats"];
+                        beat = song[i]["Beats"],
+                        melodyNote = song[i]["Melody absolute pitch"],
+                        nextBeat;
 
                     if (i == song.length - 1) {
                         nextBeat = beat + 3;
@@ -89,22 +85,24 @@ window.onload = function () {
                         nextBeat = song[i + 1]["Beats"];
                     }
 
+                    // Play the melody notes
+                    MIDI.noteOn(0, melodyNote, 100, SECONDS_PER_BEAT * beat);
+                    MIDI.noteOff(0, melodyNote, SECONDS_PER_BEAT * nextBeat);
+
+                    // Figure out the progression and then play the notes from that chord.
                     var progression = tonal.progression.concrete(romanNumeral, letterKey),
                         chord = tonal.chord.notes(progression[0]);
 
                     for (var j = 0; j < chord.length; ++j) {
-                        var note = chord[j],
-                            octaveNote = note + OCTAVE,
-                            midiNote = tonal.midi.toMidi(octaveNote);
+                        // Make sure to increase the octave up if our root note of the chord is "above" the accompanying notes.
+                        var octave = (j > 0 &&
+                            TONIC_STRING_TO_INT[chord[0]] > TONIC_STRING_TO_INT[chord[j]]) ?
+                            OCTAVE + 1 : OCTAVE,
+                            midiNote = tonal.midi.toMidi(chord[j] + octave);
 
                         MIDI.noteOn(1, midiNote, 100, SECONDS_PER_BEAT * beat);
                         MIDI.noteOff(1, midiNote, SECONDS_PER_BEAT * nextBeat);
                     }
-
-                    var melodyNote = song[i]["Melody absolute pitch"];
-
-                    MIDI.noteOn(0, melodyNote, 100, SECONDS_PER_BEAT * beat);
-                    MIDI.noteOff(0, melodyNote, SECONDS_PER_BEAT * nextBeat);
                 }
             });
         }
