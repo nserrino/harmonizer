@@ -8,6 +8,8 @@ from ..transformation import rock_corpus_parser
 
 # Train a HMM, assuming input data in the rock corpus format
 
+NUM_MELODY_NOTES = 12
+
 
 def get_start_probability(harmonies, chord_list):
     # Probability of each chord, in a vacuum
@@ -47,9 +49,21 @@ def get_transition_matrix(harmonies, chord_list):
     return transitions / num_transitions
 
 
-def get_emission_matrix():
-    # For each melody note, the probability of each chord
-    return
+def get_emission_matrix(resamples, chord_list):
+    # For each chord, the probability of matching each melody note
+    emission = numpy.zeros(shape=(len(chord_list), NUM_MELODY_NOTES))
+    num_pairs = 0
+
+    for resample in resamples:
+        for index, row in resample.iterrows():
+            chord = row[rock_corpus_parser.ROMAN_NUMERAL]
+            rel_melody = row[rock_corpus_parser.MELODY_REL_PITCH]
+            if chord in chord_list:
+                index = chord_list.index(chord)
+                emission[index][rel_melody] += 1
+                num_pairs += 1
+
+    return emission / num_pairs
 
 
 if __name__ == "__main__":
