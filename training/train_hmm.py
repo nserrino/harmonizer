@@ -9,9 +9,19 @@ from ..transformation import rock_corpus_parser
 # Train a HMM, assuming input data in the rock corpus format
 
 
-def get_start_probability():
+def get_start_probability(harmonies, chord_list):
     # Probability of each chord, in a vacuum
-    return
+    start = numpy.zeros(len(chord_list))
+    num_entries = 0
+
+    for harmony in harmonies:
+        for chord in harmony[rock_corpus_parser.ROMAN_NUMERAL]:
+            if chord in chord_list:
+                index = chord_list.index(chord)
+                start[index] += 1
+                num_entries += 1
+
+    return start / num_entries
 
 
 def get_transition_matrix(harmonies, chord_list):
@@ -34,7 +44,7 @@ def get_transition_matrix(harmonies, chord_list):
                 # If not a valid chord, don't count this transition or the next one.
                 last_chord = None
 
-    return transitions
+    return transitions / num_transitions
 
 
 def get_emission_matrix():
