@@ -1,11 +1,34 @@
 import argparse
 import os
 import pandas
-
+import rock_corpus_parser
 
 CLEAN = True
 MELODY_EXT = ".nlt"
 HARMONY_EXT = ".clt"
+
+# Resamples harmony and melody files to be located on the same time axis.
+# Expects input to be in the rock corpus format.
+
+
+def resample_song(harmony_path, melody_path, output_path):
+    harmony = rock_corpus_parser.parse_harmony(harmony_path)
+    melody = rock_corpus_parser.parse_melody(melody_path)
+
+    if len(harmony) == 0 or len(melody) == 0:
+        raise Exception("Harmony or melody has no entries")
+        return
+
+    output = pandas.concat([harmony, melody])
+    output = output.sort(rock_corpus_parser.BEATS).fillna(method="ffill").dropna()
+
+    int_columns = [rock_corpus_parser.HARMONY_KEY_TONIC, rock_corpus_parser.MELODY_ABS_PITCH,
+                   rock_corpus_parser.MELODY_REL_PITCH]
+
+    for col_name in int_columns:
+        output[col_name] = output[col_name].astype(int)
+
+    return output
 
 
 def parse_and_write_song(harmony_path, melody_path, output_path, store_as_json):
@@ -20,34 +43,10 @@ def parse_and_write_song(harmony_path, melody_path, output_path, store_as_json):
             raise Exception("Output path exists: " + output_path)
 
     try:
-        harmony = pandas.read_csv(harmony_path, header=None, delimiter=r"\s+")
-        melody = pandas.read_csv(melody_path, header=None, delimiter=r"\s+")
+        output = resample_song(harmony_path, melody_path, output_path)
     except:
-        print "Encountered error reading song for", output_path
+        print "Skipping", output_path, "due to error during parsing/resampling"
         return
-
-    harmony.dropna()
-    melody.dropna()
-    harmony.columns = ['Seconds', 'Beats', 'Harmony Roman Numeral',
-                       'Harmony chromatic key-relative root', 'Harmony diatonic root',
-                       'Harmony key tonic', 'Harmony absolute root']
-    melody.columns = ['Seconds', 'Beats', 'Melody absolute pitch', 'Melody key-relative pitch']
-    del harmony['Seconds']
-    del melody['Seconds']
-
-    if len(harmony) == 0 or len(melody) == 0:
-        print "Skipping", output_path
-        return
-
-    output = pandas.concat([harmony, melody])
-    output = output.sort("Beats").fillna(method="ffill").dropna()
-
-    int_columns = ['Harmony chromatic key-relative root', 'Harmony diatonic root',
-                   'Harmony key tonic', 'Harmony absolute root', 'Melody absolute pitch',
-                   'Melody key-relative pitch']
-
-    for col_name in int_columns:
-        output[col_name] = output[col_name].astype(int)
 
     if store_as_json:
         output.to_json(output_path, orient="records")

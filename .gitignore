@@ -2,3 +2,4 @@
 node_modules
 app/midi-js-soundfonts
 *bundle.js
+*.pyc
