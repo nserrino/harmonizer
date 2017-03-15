@@ -3,7 +3,7 @@ import json
 import os
 import numpy
 # import pandas
-import rock_corpus_parser
+from ..transformation import rock_corpus_parser
 # from resample_harmony_melody import resample_song
 
 # Train a HMM, assuming input data in the rock corpus format
@@ -15,8 +15,6 @@ def get_start_probability():
 
 
 def get_transition_matrix(harmonies, chord_list):
-    print len(harmonies)
-    print len(chord_list)
     # Probability of changing from one chord to another
     transitions = numpy.zeros(shape=(len(chord_list), len(chord_list)))
     num_transitions = 0
