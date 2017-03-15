@@ -10,6 +10,10 @@ var argv = minimist(process.argv.slice(2), {
     inputFile = argv.input,
     outputFile = argv.output;
 
+// Parses the chords from an input file similar to ../chord_counts.csv into a
+// list of supported/unsupported chords. If verbose is not set, simply write out
+// the list of supported chords as a json file to the destination.
+
 function getChordCounts(input) {
     var chordData = fs.readFileSync(input).toString();
     // Drop the header
