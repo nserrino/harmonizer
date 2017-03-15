@@ -1,5 +1,8 @@
 import pandas
 
+HARMONY_EXT = ".clt"
+MELODY_EXT = ".nlt"
+
 SECONDS = "Seconds"
 BEATS = "Beats"
 ROMAN_NUMERAL = "Roman numeral"

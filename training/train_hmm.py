@@ -68,9 +68,9 @@ def get_emission_matrix(resamples, chord_list):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--harmony", help="Harmony files directory", required=True)
     parser.add_argument("--chords_list", help="Supported chords list (json)", required=True)
-    # parser.add_argument("--melody", help="Melody files directory", required=True)
+    parser.add_argument("--harmony", help="Harmony files directory", required=True)
+    parser.add_argument("--melody", help="Melody files directory", required=True)
     args = parser.parse_args()
 
     harmony_paths = [os.path.join(args.harmony, f) for f in os.listdir(args.harmony)
@@ -82,9 +82,7 @@ if __name__ == "__main__":
             parsed_harmony = rock_corpus_parser.parse_harmony(harmony_path)
             harmonies.append(parsed_harmony)
         except Exception as e:
-            print e
             print "Failed to parse harmony at path:", harmony_path
-            raise Exception("alkjfsd")
 
     with open(args.chords_list) as f:
         chord_list = json.loads(f.read())
