@@ -76,7 +76,7 @@ window.onload = function () {
             MIDI.programChange(0, MIDI.GM.byName["electric_piano_2"].number);
             MIDI.programChange(1, MIDI.GM.byName["acoustic_guitar_nylon"].number);
 
-            $.getJSON("sweet_child_o_mine_tdc.json", function(song) {
+            $.getJSON("my_girl_tdc.json", function(song) {
                 for (var i = 0; i < song.length; ++i) {
                     var romanNumeral = song[i]["Harmony Roman Numeral"],
                         numericKey = song[i]["Harmony key tonic"],
@@ -106,35 +106,6 @@ window.onload = function () {
                     MIDI.noteOn(0, melodyNote, 100, SECONDS_PER_BEAT * beat);
                     MIDI.noteOff(0, melodyNote, SECONDS_PER_BEAT * nextBeat);
                 }
-
-                // var chord = require('tonal-chord');
-                // console.log(chord)
-                // console.log(window.Tonal)
-                // MIDI.programChange(0, MIDI.GM.byName["electric_piano_2"].number);
-                // MIDI.programChange(1, MIDI.GM.byName["acoustic_guitar_nylon"].number);
-
-                // for (var i = 0; i < song.length; ++i) {
-                //     var note = song[i]["Melody absolute pitch"], // the MIDI note
-                //         beat = song[i]["Beats"],
-                //         nextBeat;
-
-                //     var harmonyNote = song[i]["Harmony absolute root"] + HARMONY_OCTAVE_OFFSET;
-
-                //     if (i == song.length - 1) {
-                //         nextBeat = beat + 3;
-                //     } else {
-                //         nextBeat = song[i + 1]["Beats"];
-                //     }
-
-                //     var velocity = 100; // how hard the note hits
-                //     // play the note
-                //     MIDI.setVolume(0, 100);
-                //     MIDI.noteOn(0, note, velocity, SECONDS_PER_BEAT * beat);
-                //     MIDI.noteOff(0, note, SECONDS_PER_BEAT * nextBeat);
-
-                //     MIDI.noteOn(1, harmonyNote, velocity, SECONDS_PER_BEAT * beat);
-                //     MIDI.noteOff(1, harmonyNote, SECONDS_PER_BEAT * nextBeat);
-                // }
             });
         }
     });
