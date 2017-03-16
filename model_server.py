@@ -23,7 +23,8 @@ def index():
 
 
 def midi_notes_to_relative(sequence, offset):
-    return [(s + offset) % 12 for s in sequence]
+    # MIDI note 60 in key 7 should become 5. 60-7 = 53 -> 53 % 12 = 5.
+    return [(s - offset) % 12 for s in sequence]
 
 
 def generate_sequence(sequence):
@@ -42,7 +43,7 @@ def generate_sequence(sequence):
         if (logprob > current['logprob']):
             current['logprob'] = logprob
             current['key'] = key
-            current['sequence'] = [chords[s] for s in sequence]
+            current['sequence'] = [chords[s] for s in relative_sequence]
 
     return current
 
