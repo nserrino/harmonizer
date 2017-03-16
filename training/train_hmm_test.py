@@ -1,7 +1,6 @@
-# from train_hmm import get_transition_matrix
 import numpy
 from StringIO import StringIO
-from ..transformation import rock_corpus_parser, resample_harmony_melody
+from transformation import rock_corpus_parser, resample_harmony_melody
 from train_hmm import get_transition_matrix, get_start_probability, get_emission_matrix
 from train_hmm import NUM_MELODY_NOTES
 
@@ -26,8 +25,8 @@ TEST_CHORD_LIST = [
 
 def test_get_transition_matrix():
     expected = numpy.zeros(shape=(len(TEST_CHORD_LIST), len(TEST_CHORD_LIST)))
-    expected[0][0] = 2.0 / 3
-    expected[4][0] = 1.0 / 3
+    expected[0][0] = 1
+    expected[4][0] = 1
 
     harmony = rock_corpus_parser.parse_harmony(StringIO(TEST_HARMONY_CLT))
     transition_matrix = get_transition_matrix([harmony], TEST_CHORD_LIST)
@@ -46,10 +45,10 @@ def test_get_start_probability():
 
 def test_get_emission_matrix():
     expected = numpy.zeros(shape=(len(TEST_CHORD_LIST), NUM_MELODY_NOTES))
-    expected[0][0] = 5.0 / 9
-    expected[0][4] = 2.0 / 9
-    expected[4][0] = 1.0 / 9
-    expected[4][4] = 1.0 / 9
+    expected[0][0] = 5.0 / 7
+    expected[0][4] = 2.0 / 7
+    expected[4][0] = 1.0 / 2
+    expected[4][4] = 1.0 / 2
 
     resampled = resample_harmony_melody.resample_song(StringIO(TEST_HARMONY_CLT),
                                                       StringIO(TEST_MELODY_NLT))
