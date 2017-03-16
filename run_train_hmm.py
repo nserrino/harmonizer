@@ -1,9 +1,9 @@
 import argparse
 import json
-import numpy
 import os
+import pickle
+
 from hmmlearn import hmm
-from sklearn.externals import joblib
 from transformation.rock_corpus_parser import HARMONY_EXT, parse_harmony
 from transformation.resample_harmony_melody import get_harmony_melody_pairs, resample_song
 from training.train_hmm import get_transition_matrix, get_start_probability, get_emission_matrix
@@ -13,6 +13,7 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--chords_list", help="Supported chords list (json)", required=True)
 parser.add_argument("--harmony", help="Harmony files directory", required=True)
 parser.add_argument("--melody", help="Melody files directory", required=True)
+parser.add_argument('--output', help="Destination to store pkl file", required=True)
 args = parser.parse_args()
 
 harmony_root = os.path.abspath(args.harmony)
@@ -63,4 +64,6 @@ model.startprob_ = start_probs
 model.transmat_ = transition_matrix
 model.emissionprob_ = emission_matrix
 
-joblib.dump(model, "models/hmm.pkl")
+out = open(args.output, 'w')
+pickle.dump(model, out)
+out.close()
