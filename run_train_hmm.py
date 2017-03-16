@@ -3,6 +3,7 @@ import json
 import numpy
 import os
 from hmmlearn import hmm
+from sklearn.externals import joblib
 from transformation.rock_corpus_parser import HARMONY_EXT, parse_harmony
 from transformation.resample_harmony_melody import get_harmony_melody_pairs, resample_song
 from training.train_hmm import get_transition_matrix, get_start_probability, get_emission_matrix
@@ -62,9 +63,13 @@ model.startprob_ = start_probs
 model.transmat_ = transition_matrix
 model.emissionprob_ = emission_matrix
 
-numpy.savetxt("foo2.csv", transition_matrix, delimiter=",", fmt='%1.3f')
+# numpy.savetxt("foo2.csv", transition_matrix, delimiter=",", fmt='%1.3f')
+# joblib.dump(model, "hmm.pkl")
 
-test = numpy.array([[4, 5, 5, 4, 4, 5, 10, 10, 10, 9, 9, 7]]).T
+# 'c c g g a a g f f e e d d c g g f f e e d g g f f e e d'
+# test = numpy.array([[0, 0, 7, 7, 9, 9, 7, 5, 5, 4, 4, 2, 2, 0]]).T
+# test = numpy.array([[4, 5, 5, 4, 4, 5, 10, 10, 10, 9, 9, 7]]).T
+test = numpy.array([[0, 7, 9, 7, 5, 4, 2, 0]]).T
 # model = model.fit(test)
 logprob, output = model.decode(test, algorithm="viterbi")
 print test
