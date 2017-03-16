@@ -1,10 +1,10 @@
 import numpy
 from transformation import rock_corpus_parser
-# from resample_harmony_melody import resample_song
 
 # Train a HMM, assuming input data in the rock corpus format
 
 NUM_MELODY_NOTES = 12
+MELODY_STATES = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
 
 
 def get_start_probability(harmonies, chord_list):

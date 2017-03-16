@@ -1,9 +1,12 @@
 import argparse
 import json
+import numpy
 import os
+from hmmlearn import hmm
 from transformation.rock_corpus_parser import HARMONY_EXT, parse_harmony
 from transformation.resample_harmony_melody import get_harmony_melody_pairs, resample_song
 from training.train_hmm import get_transition_matrix, get_start_probability, get_emission_matrix
+from training.train_hmm import NUM_MELODY_NOTES, MELODY_STATES
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--chords_list", help="Supported chords list (json)", required=True)
@@ -28,9 +31,9 @@ for harmony_path in harmony_paths:
 with open(args.chords_list) as f:
     chord_list = json.loads(f.read())
 
+# Compute transition matrix
 transition_matrix = get_transition_matrix(harmonies, chord_list)
-# numpy.savetxt("foo2.csv", transition_matrix, delimiter=",", fmt='%1.3f')
-
+# Compute start probabilities
 start_probs = get_start_probability(harmonies, chord_list)
 
 harmony_filenames = os.listdir(harmony_root)
@@ -46,5 +49,24 @@ for pair in pairs:
     except Exception as e:
         print "Encountered error on", pair['song'], ": Skipping."
 
-emission = get_emission_matrix(resamples, chord_list)
-print emission
+# Compute emission matrix
+emission_matrix = get_emission_matrix(resamples, chord_list)
+
+n_observations = NUM_MELODY_NOTES
+observations = MELODY_STATES
+n_states = len(chord_list)
+states = chord_list
+
+model = hmm.MultinomialHMM(n_components=n_states, init_params="ste")
+model.startprob_ = start_probs
+model.transmat_ = transition_matrix
+model.emissionprob_ = emission_matrix
+
+numpy.savetxt("foo2.csv", transition_matrix, delimiter=",", fmt='%1.3f')
+
+test = numpy.array([[4, 5, 5, 4, 4, 5, 10, 10, 10, 9, 9, 7]]).T
+# model = model.fit(test)
+logprob, output = model.decode(test, algorithm="viterbi")
+print test
+# print("Melody says:", ", ".join(map(lambda x: observations[x], test)))
+print("Harmony says:", ", ".join(map(lambda x: states[x], output)))
