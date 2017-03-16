@@ -4,31 +4,31 @@
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <title>MIDI.js - Sequencing in Javascript.</title>
     <!-- midi.js css -->
-    <link href="node_modules/midi/examples/css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
+    <link href="/static/js/node_modules/midi/examples/css/MIDIPlayer.css" rel="stylesheet" type="text/css" />
     <!-- shim -->
-    <script src="node_modules/midi/inc/shim/Base64.js" type="text/javascript"></script>
-    <script src="node_modules/midi/inc/shim/Base64binary.js" type="text/javascript"></script>
-    <script src="node_modules/midi/inc/shim/WebAudioAPI.js" type="text/javascript"></script>
-    <script src="node_modules/midi/inc/shim/WebMIDIAPI.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/inc/shim/Base64.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/inc/shim/Base64binary.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/inc/shim/WebAudioAPI.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/inc/shim/WebMIDIAPI.js" type="text/javascript"></script>
     <!-- jasmid package -->
-    <script src="node_modules/midi/inc/jasmid/stream.js"></script>
-    <script src="node_modules/midi/inc/jasmid/midifile.js"></script>
-    <script src="node_modules/midi/inc/jasmid/replayer.js"></script>
+    <script src="/static/js/node_modules/midi/inc/jasmid/stream.js"></script>
+    <script src="/static/js/node_modules/midi/inc/jasmid/midifile.js"></script>
+    <script src="/static/js/node_modules/midi/inc/jasmid/replayer.js"></script>
     <!-- midi.js package -->
-    <script src="node_modules/midi/js/midi/audioDetect.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/midi/gm.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/midi/loader.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/midi/plugin.audiotag.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/midi/plugin.webaudio.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/midi/plugin.webmidi.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/midi/player.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/midi/synesthesia.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/audioDetect.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/gm.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/loader.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/plugin.audiotag.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/plugin.webaudio.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/plugin.webmidi.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/player.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/synesthesia.js" type="text/javascript"></script>
     <!-- utils -->
-    <script src="node_modules/midi/js/util/dom_request_xhr.js" type="text/javascript"></script>
-    <script src="node_modules/midi/js/util/dom_request_script.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/util/dom_request_xhr.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/util/dom_request_script.js" type="text/javascript"></script>
     <!-- includes -->
-    <script src="node_modules/midi/examples/inc/timer.js" type="text/javascript"></script>
-    <script src="node_modules/midi/examples/inc/event.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/examples/inc/timer.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/examples/inc/event.js" type="text/javascript"></script>
 </head>
 <body>
     <h1>Harmonizer test page.</h1>
@@ -36,10 +36,10 @@
     <div style="margin-bottom: 50px; border: 1px solid #000; background: rgba(255,255,255,0.5); border-radius: 11px; float: left; width: 800px; padding-bottom: 15px; position: relative; z-index: 2;">
         <div class="player" style="height: 42px; box-shadow: 0 -1px #000; margin-bottom: 0; border-bottom-right-radius: 0; border-bottom-left-radius: 0;">
             <div style="margin: 0 auto; width: 160px; float: right;">
-                <input type="image" src="node_modules/midi/examples/images/pause.png" align="absmiddle" value="pause" onclick="pausePlayStop()" id="pausePlayStop">
-                <input type="image" src="node_modules/midi/examples/images/stop.png" align="absmiddle" value="stop" onclick="pausePlayStop(true)">
-                <input type="image" src="node_modules/midi/examples/images/backward.png" align="absmiddle" value="stop" onclick="player.getNextSong(-1);">
-                <input type="image" src="node_modules/midi/examples/images/forward.png" align="absmiddle" value="stop" onclick="player.getNextSong(+1);">
+                <input type="image" src="/static/js/node_modules/midi/examples/images/pause.png" align="absmiddle" value="pause" onclick="pausePlayStop()" id="pausePlayStop">
+                <input type="image" src="/static/js/node_modules/midi/examples/images/stop.png" align="absmiddle" value="stop" onclick="pausePlayStop(true)">
+                <input type="image" src="/static/js/node_modules/midi/examples/images/backward.png" align="absmiddle" value="stop" onclick="player.getNextSong(-1);">
+                <input type="image" src="/static/js/node_modules/midi/examples/images/forward.png" align="absmiddle" value="stop" onclick="player.getNextSong(+1);">
             </div>
             <div class="time-controls" style="float: left; margin: 0; position: relative; top: 5px;">
                 <span id="time1" class="time">0:00</span>
@@ -61,12 +61,12 @@
         var d = document.getElementById("pausePlayStop");
         if (stop) {
             MIDI.Player.stop();
-            d.src = "node_modules/midi/examples/images/play.png";
+            d.src = "/static/js/node_modules/midi/examples/images/play.png";
         } else if (MIDI.Player.playing) {
-            d.src = "node_modules/midi/examples/images/play.png";
+            d.src = "/static/js/node_modules/midi/examples/images/play.png";
             MIDI.Player.pause(true);
         } else {
-            d.src = "node_modules/midi/examples/images/pause.png";
+            d.src = "/static/js/node_modules/midi/examples/images/pause.png";
             MIDI.Player.resume();
         }
     };
@@ -84,7 +84,7 @@
 
         MIDI.loader = new sketch.ui.Timer;
         MIDI.loadPlugin({
-            soundfontUrl: "node_modules/midi/examples/soundfont/",
+            soundfontUrl: "/static/js/node_modules/midi/examples/soundfont/",
             onprogress: function(state, progress) {
                 MIDI.loader.setValue(progress * 100);
             },
@@ -152,8 +152,8 @@
     var songid = 0;
 
     var song = [
-        "midi-samples/deb_clai_format0.mid",
-        "midi-samples/deb_prel_format0.mid"
+        "/static/midi/deb_clai_format0.mid",
+        "/static/midi/deb_prel_format0.mid"
     ];
 </script>
 </body>

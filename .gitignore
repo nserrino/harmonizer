@@ -1,6 +1,6 @@
 *.sublime-workspace
 node_modules
-app/midi-js-soundfonts
+static/midi-js-soundfonts
 *bundle.js
 *.pyc
 .cache

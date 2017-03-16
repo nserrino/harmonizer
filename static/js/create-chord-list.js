@@ -14,6 +14,10 @@ var argv = minimist(process.argv.slice(2), {
 // list of supported/unsupported chords. If verbose is not set, simply write out
 // the list of supported chords as a json file to the destination.
 
+// This script only lives here out of convenience, as it requires the JS
+// packages used by the app. Note that manual pruning of the output chords may
+// still be required.
+
 function getChordCounts(input) {
     var chordData = fs.readFileSync(input).toString();
     // Drop the header
