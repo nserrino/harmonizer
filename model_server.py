@@ -1,12 +1,21 @@
+import random
+import os
 import numpy
 import json
 import pickle
 from flask import Flask, send_file, Response, request
+from transformation.resample_harmony_melody import resample_melody
 
 app = Flask(__name__)
 
 CHORDS_LIST = 'supported_chords.json'
 MODEL_PATH = 'models/discrete_hmm.pkl'
+ROCK_CORPUS_MELODIES = 'rock-corpus/rs200_melody_nlt'
+
+BEAT = 'beat'
+MELODY = 'midi_note'
+
+BEATS_PER_HARMONY_CHORD = 2
 
 f = open(CHORDS_LIST, 'r')
 chords = json.load(f)
@@ -43,17 +52,70 @@ def generate_sequence(sequence):
         if (logprob > current['logprob']):
             current['logprob'] = logprob
             current['key'] = key
-            current['sequence'] = [chords[s] for s in relative_sequence]
+            current['sequence'] = [chords[s] for s in states]
 
     return current
 
 
-@app.route('/harmony/generate', methods=['POST'])
-def generate_harmony():
+@app.route('/harmony/generate_from_notes', methods=['POST'])
+def generate_from_notes():
     test_sequence = request.json['sequence']
     output = generate_sequence(test_sequence)
-    resp = Response(json.dumps(output), status=200, mimetype='application/json')
-    return resp
+    return Response(json.dumps(output), status=200, mimetype='application/json')
+
+
+@app.route('/harmony/generate_from_csv/<songname>', methods=['GET'])
+def generate_from_csv(songname):
+    filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
+    resampled = resample_melody(filepath, BEAT, MELODY)
+
+    # grab a melody note at each BEATS_PER_HARMONY_CHORD interval.
+    input_sequence = []
+    for index, sample in enumerate(resampled):
+        if index % BEATS_PER_HARMONY_CHORD > 0:
+            continue
+        input_sequence.append(sample[MELODY])
+
+    result = generate_sequence(input_sequence)
+    result['start_beat'] = resampled[0][BEAT]
+    result['beats_per_chord'] = BEATS_PER_HARMONY_CHORD
+    return Response(json.dumps(result), status=200, mimetype='application/json')
+
+
+@app.route('/harmony/generate_random/<songname>', methods=['GET'])
+def generate_random(songname):
+    filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
+    resampled = resample_melody(filepath, BEAT, MELODY)
+
+    # grab a melody note at each BEATS_PER_HARMONY_CHORD interval.
+    sequence = []
+    for index, sample in enumerate(resampled):
+        if index % BEATS_PER_HARMONY_CHORD > 0:
+            continue
+        sequence.append(random.choice(chords))
+
+    result = {}
+    result['key'] = 0
+    result['sequence'] = sequence
+    result['start_beat'] = resampled[0][BEAT]
+    result['beats_per_chord'] = BEATS_PER_HARMONY_CHORD
+    return Response(json.dumps(result), status=200, mimetype='application/json')
+
+
+@app.route('/melody/get_sequence/<songname>', methods=['GET'])
+def get_melody_sequence(songname):
+    filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
+    rows = open(filepath, 'r').readlines()
+
+    output = []
+    for row in rows:
+        new_el = {}
+        data = row.split()
+        new_el[BEAT] = data[1]
+        new_el[MELODY] = data[2]
+        output.append(new_el)
+
+    return Response(json.dumps(output), status=200, mimetype='application/json')
 
 
 if __name__ == "__main__":

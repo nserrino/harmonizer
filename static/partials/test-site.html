@@ -24,13 +24,14 @@
 window.onload = function () {
     MIDI.loadPlugin({
         soundfontUrl: "/static/midi-js-soundfonts/FluidR3_GM/",
-        instrument: ["electric_piano_2", "acoustic_guitar_nylon"],
+        instrument: ["acoustic_grand_piano", "acoustic_guitar_nylon"],
         onprogress: function(state, progress) {
             console.log(state, progress);
         },
         onsuccess: function() {
-            var SECONDS_PER_BEAT = 0.5,
-                OCTAVE = 3;
+            var SECONDS_PER_BEAT = 2,
+                HARMONY_OCTAVE = 3,
+                SONG_NAME = 'brown-eyed_girl_dt';
 
             var TONIC_INT_TO_STRING = [
                 'C',
@@ -67,117 +68,75 @@ window.onload = function () {
                 'B': 11
             };
 
-            MIDI.programChange(0, MIDI.GM.byName["electric_piano_2"].number);
+            MIDI.programChange(0, MIDI.GM.byName["acoustic_grand_piano"].number);
             MIDI.programChange(1, MIDI.GM.byName["acoustic_guitar_nylon"].number);
 
-            var melody = [
-                { beat: 0, melody: 0 },
-                { beat: 1, melody: 0 },
-                { beat: 2, melody: 7 },
-                { beat: 3, melody: 7 },
-                { beat: 4, melody: 9 },
-                { beat: 5, melody: 9 },
-                { beat: 6, melody: 7 },
-                { beat: 8, melody: 5 },
-                { beat: 9, melody: 5 },
-                { beat: 10, melody: 4 },
-                { beat: 11, melody: 4 },
-                { beat: 12, melody: 2 },
-                { beat: 13, melody: 2 },
-                { beat: 14, melody: 0 }
-            ]
+            function playMelody(melody) {
+                for (var i = 0; i < melody.length; ++i) {
+                    var letterKey = 'C',
+                        beat = melody[i].beat,
+                        melodyNote = melody[i].midi_note,
+                        nextBeat;
 
-            var harmony = [
-                { beat: 0, harmony: 'IV' },
-                { beat: 2, harmony: 'I' },
-                { beat: 4, harmony: 'IV' },
-                { beat: 6, harmony: 'I' },
-                { beat: 8, harmony: 'IV' },
-                { beat: 10, harmony: 'I' },
-                { beat: 12, harmony: 'IV' },
-                { beat: 14, harmony: 'I' }
-            ]
+                    if (i == melody.length - 1) {
+                        nextBeat = beat + 1;
+                    } else {
+                        nextBeat = melody[i + 1].beat;
+                    }
 
-            for (var i = 0; i < melody.length; ++i) {
-                var letterKey = 'C',
-                    beat = melody[i].beat,
-                    melodyNote = melody[i].melody,
-                    nextBeat;
-
-                if (i == melody.length - 1) {
-                    nextBeat = beat + 2;
-                } else {
-                    nextBeat = melody[i + 1].beat;
-                }
-
-                MIDI.noteOn(0, melodyNote + 60, 100, SECONDS_PER_BEAT * beat + 1);
-                MIDI.noteOff(0, melodyNote + 60, SECONDS_PER_BEAT * nextBeat + 1);
-            }
-
-            for (var i = 0; i < harmony.length; ++i) {
-                var letterKey = 'C',
-                    beat = harmony[i].beat,
-                    romanNumeral = harmony[i].harmony,
-                    nextBeat;
-
-                if (i == harmony.length - 1) {
-                    nextBeat = beat + 2;
-                } else {
-                    nextBeat = harmony[i + 1].beat;
-                }
-
-                // Figure out the progression and then play the notes from that chord.
-                var progression = tonal.progression.concrete(romanNumeral, letterKey),
-                    chord = tonal.chord.notes(progression[0]);
-
-                for (var j = 0; j < chord.length; ++j) {
-                    // Make sure to increase the octave up if our root note of the chord is "above" the accompanying notes.
-                    var octave = (j > 0 &&
-                        TONIC_STRING_TO_INT[chord[0]] > TONIC_STRING_TO_INT[chord[j]]) ?
-                        OCTAVE + 1 : OCTAVE,
-                        midiNote = tonal.midi.toMidi(chord[j] + octave);
-
-                    MIDI.noteOn(1, midiNote, 100, SECONDS_PER_BEAT * beat + 1);
-                    MIDI.noteOff(1, midiNote, SECONDS_PER_BEAT * nextBeat + 1);
+                    MIDI.noteOn(0, melodyNote, 100, SECONDS_PER_BEAT * beat);
+                    MIDI.noteOff(0, melodyNote, SECONDS_PER_BEAT * nextBeat);
                 }
             }
 
+            function playHarmony(harmony) {
+                var letterKey = TONIC_INT_TO_STRING[harmony['key']],
+                    beatsPerChord = harmony['beats_per_chord'],
+                    currentBeat = harmony['start_beat'];
 
-            // $.getJSON("a_hard_days_night_tdc.json", function(song) {
-            //     for (var i = 0; i < song.length; ++i) {
-            //         var romanNumeral = song[i]["Harmony Roman Numeral"],
-            //             numericKey = song[i]["Harmony key tonic"],
-            //             letterKey = TONIC_INT_TO_STRING[numericKey],
-            //             beat = song[i]["Beats"],
-            //             melodyNote = song[i]["Melody absolute pitch"],
-            //             nextBeat;
+                for (var i = 0; i < harmony.sequence.length; ++i) {
+                    var romanNumeral = harmony.sequence[i],
+                        nextBeat = currentBeat + beatsPerChord;
 
-            //         if (i == song.length - 1) {
-            //             nextBeat = beat + 3;
-            //         } else {
-            //             nextBeat = song[i + 1]["Beats"];
-            //         }
+                    // Figure out the progression and then play the notes from that chord.
+                    var progression = tonal.progression.concrete(romanNumeral, letterKey),
+                        chord = tonal.chord.notes(progression[0]);
 
-            //         // Play the melody notes
-            //         MIDI.noteOn(0, melodyNote, 100, SECONDS_PER_BEAT * beat);
-            //         MIDI.noteOff(0, melodyNote, SECONDS_PER_BEAT * nextBeat);
+                    for (var j = 0; j < chord.length; ++j) {
+                        // Make sure to increase the octave up if our root note of the chord is "above" the accompanying notes.
+                        var octave = (j > 0 &&
+                            TONIC_STRING_TO_INT[chord[0]] > TONIC_STRING_TO_INT[chord[j]]) ?
+                            HARMONY_OCTAVE + 1 : HARMONY_OCTAVE,
+                            midiNote = tonal.midi.toMidi(chord[j] + octave);
 
-            //         // Figure out the progression and then play the notes from that chord.
-            //         var progression = tonal.progression.concrete(romanNumeral, letterKey),
-            //             chord = tonal.chord.notes(progression[0]);
+                        MIDI.noteOn(1, midiNote, 30, SECONDS_PER_BEAT * currentBeat);
+                        MIDI.noteOff(1, midiNote, SECONDS_PER_BEAT * nextBeat);
+                    }
 
-            //         for (var j = 0; j < chord.length; ++j) {
-            //             // Make sure to increase the octave up if our root note of the chord is "above" the accompanying notes.
-            //             var octave = (j > 0 &&
-            //                 TONIC_STRING_TO_INT[chord[0]] > TONIC_STRING_TO_INT[chord[j]]) ?
-            //                 OCTAVE + 1 : OCTAVE,
-            //                 midiNote = tonal.midi.toMidi(chord[j] + octave);
+                    currentBeat = nextBeat;
+                }
+            }
 
-            //             MIDI.noteOn(1, midiNote, 100, SECONDS_PER_BEAT * beat);
-            //             MIDI.noteOff(1, midiNote, SECONDS_PER_BEAT * nextBeat);
-            //         }
-            //     }
-            // });
+            $.ajax({
+                type: 'get',
+                url: '/melody/get_sequence/' + SONG_NAME,
+                success: function (melody) {
+                    $.ajax({
+                        type: 'get',
+                        // url: '/harmony/generate_random/' + SONG_NAME,
+                        url: '/harmony/generate_from_csv/' + SONG_NAME,
+                        success: function (harmonyInfo) {
+                            console.log("melody:", melody)
+                            console.log("harmony:", harmonyInfo)
+                            playMelody(melody);
+                            playHarmony(harmonyInfo);
+                        },
+                        error: function() {
+                            console.log(arguments)
+                        }
+                    })
+                }
+            });
         }
     });
 };

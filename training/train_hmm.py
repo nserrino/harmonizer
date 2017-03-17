@@ -27,13 +27,23 @@ def get_transition_matrix(harmonies, chord_list):
     transitions = numpy.zeros(shape=(len(chord_list), len(chord_list)))
     num_transitions = numpy.zeros(len(chord_list))
 
+    count = 0
+    printed = False
     for harmony in harmonies:
         last_chord = None
+        ccount = 0
         for chord in harmony[rock_corpus_parser.ROMAN_NUMERAL]:
             if chord in chord_list:
                 if last_chord is not None:
                     last_index = chord_list.index(last_chord)
                     this_index = chord_list.index(chord)
+
+                    if chord == last_chord:
+                        print "Chord", chord, "comes after", last_chord, "in harmony", count, "row", ccount
+                        if not printed:
+                            print harmony
+                            printed = True
+
                     transitions[last_index][this_index] += 1
                     num_transitions[last_index] += 1
 
@@ -41,6 +51,8 @@ def get_transition_matrix(harmonies, chord_list):
             else:
                 # If not a valid chord, don't count this transition or the next one.
                 last_chord = None
+            ccount += 1
+        count += 1
 
     # Make sure each one has at least 1 transition to avoid a divide by 0
     for i in xrange(len(chord_list)):

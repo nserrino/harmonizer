@@ -1,3 +1,5 @@
+import math
+import numpy
 import os
 import pandas
 import rock_corpus_parser
@@ -64,3 +66,40 @@ def parse_and_write_song(harmony_path, melody_path, output_path, store_as_json):
         output.to_json(output_path, orient="records")
     else:
         output.to_csv(output_path, index=False)
+
+
+def resample_melody(location, beat_col, melody_col):
+    input_values = pandas.read_csv(location, delimiter=r"\s+", header=None)
+    input_values = input_values.drop(input_values.columns[3], axis=1)
+    input_values = input_values.drop(input_values.columns[0], axis=1)
+    input_values.columns = [beat_col, melody_col]
+
+    input_values[melody_col] = input_values[melody_col].astype('float')
+
+    first = math.floor(input_values[beat_col][0])
+    last = math.ceil(input_values[beat_col][len(input_values) - 1])
+    fill_range = last - first
+
+    new = pandas.DataFrame(numpy.nan, index=xrange(int(fill_range)),
+                           columns=[beat_col, melody_col], dtype='float')
+
+    for i in xrange(int(fill_range)):
+        new.set_value(i, beat_col, i + first)
+
+    combined = input_values.append(new)
+    # We might have two 1.0 columns...
+    dedup = combined.drop_duplicates(subset=beat_col)
+    sort = dedup.sort([beat_col])
+    filled = sort.fillna(method='ffill').dropna()
+
+    output = []
+    for i, row in filled.iterrows():
+        if row[beat_col].is_integer():
+            new = {}
+            new[beat_col] = row[beat_col]
+            new[melody_col] = int(row[melody_col])
+            output.append(new)
+        else:
+            print("Does this ever happen!?!??!?!?!?")
+
+    return output
