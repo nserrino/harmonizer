@@ -19,7 +19,8 @@
         "XcodeBuild",
         "linters",
         "node_modules",
-        "dist"
+        "dist",
+	".venv"
       ],
       "follow_symlinks": true,
       "path": "."

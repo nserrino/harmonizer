@@ -1,5 +1,6 @@
 import argparse
 import json
+import numpy
 import os
 import pickle
 
@@ -36,28 +37,24 @@ with open(args.chords_list) as f:
 # Compute transition matrix
 transition_matrix = get_transition_matrix(harmonies, chord_list)
 
-bVI = chord_list.index('bVI')
-
-print transition_matrix[bVI][bVI]
-
 # Compute start probabilities
-# start_probs = get_start_probability(harmonies, chord_list)
+start_probs = get_start_probability(harmonies, chord_list)
 
-# harmony_filenames = os.listdir(harmony_root)
-# melody_filenames = os.listdir(melody_root)
-# pairs = get_harmony_melody_pairs(harmony_filenames, melody_filenames)
-# resamples = []
+harmony_filenames = os.listdir(harmony_root)
+melody_filenames = os.listdir(melody_root)
+pairs = get_harmony_melody_pairs(harmony_filenames, melody_filenames)
+resamples = []
 
-# for pair in pairs:
-#     try:
-#         resample = resample_song(os.path.join(harmony_root, pair['harmony']),
-#                                  os.path.join(melody_root, pair['melody']))
-#         resamples.append(resample)
-#     except Exception as e:
-#         print "Encountered error on", pair['song'], ": Skipping."
+for pair in pairs:
+    try:
+        resample = resample_song(os.path.join(harmony_root, pair['harmony']),
+                                 os.path.join(melody_root, pair['melody']))
+        resamples.append(resample)
+    except Exception as e:
+        print "Encountered error on", pair['song'], ": Skipping."
 
-# # Compute emission matrix
-# emission_matrix = get_emission_matrix(resamples, chord_list)
+# Compute emission matrix
+emission_matrix = get_emission_matrix(resamples, chord_list)
 
 # n_observations = NUM_MELODY_NOTES
 # observations = MELODY_STATES

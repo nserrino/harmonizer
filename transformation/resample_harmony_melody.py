@@ -99,7 +99,5 @@ def resample_melody(location, beat_col, melody_col):
             new[beat_col] = row[beat_col]
             new[melody_col] = int(row[melody_col])
             output.append(new)
-        else:
-            print("Does this ever happen!?!??!?!?!?")
 
     return output
