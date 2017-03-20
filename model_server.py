@@ -5,6 +5,7 @@ import json
 import pickle
 from flask import Flask, send_file, Response, request
 from transformation.resample_harmony_melody import resample_melody
+from transformation.rock_corpus_parser import parse_melody, BEATS, MELODY_ABS_PITCH
 
 app = Flask(__name__)
 
@@ -12,8 +13,12 @@ CHORDS_LIST = 'supported_chords.json'
 ROCK_CORPUS_MELODIES = 'rock-corpus/rs200_melody_nlt'
 
 MODEL_PATHS = {
-    'discrete_hmm_numerals':  'models/discrete_hmm.pkl',
-    'discrete_hmm_numeric': 'models/discrete_numeric_hmm.pkl'
+    # Takes in relative melody notes, outputs roman numeral harmony chords
+    # E.g. ["I", "IV", "I", "IV"]
+    'discrete_hmm_chords':  'models/discrete_hmm_chords.pkl',
+    # Takes in relative melody notes, outputs relative harmony notes
+    # E.g. [0, 5, 0, 5]
+    'discrete_hmm_numeric': 'models/discrete_hmm_numeric.pkl'
 }
 
 BEAT = 'beat'
@@ -42,7 +47,11 @@ def midi_notes_to_relative(sequence, offset):
     return [(s - offset) % 12 for s in sequence]
 
 
-def generate_sequence(sequence):
+def generate_sequence(sequence, model_type):
+    if model_type not in models:
+        raise Exception("Model " + model_type + " does not exist on server")
+    model = models[model_type]
+
     current = {
         'logprob': float("-inf"),
         'key': None,
@@ -58,20 +67,24 @@ def generate_sequence(sequence):
         if (logprob > current['logprob']):
             current['logprob'] = logprob
             current['key'] = key
-            current['sequence'] = [chords[s] for s in states]
+            if model_type == 'discrete_hmm_chords':
+                current['sequence'] = [chords[s] for s in states]
+            else:
+                current['sequence'] = states.tolist()
 
     return current
 
 
-@app.route('/harmony/generate_from_notes', methods=['POST'])
-def generate_from_notes():
+@app.route('/harmony/generate_from_notes/<modelname>', methods=['POST'])
+def generate_from_notes(modelname):
+    model_type = request.json['model_type']
     test_sequence = request.json['sequence']
-    output = generate_sequence(test_sequence)
+    output = generate_sequence(test_sequence, model_type)
     return Response(json.dumps(output), status=200, mimetype='application/json')
 
 
-@app.route('/harmony/generate_from_csv/<songname>', methods=['GET'])
-def generate_from_csv(songname):
+@app.route('/harmony/generate_from_csv/<modelname>/<songname>', methods=['GET'])
+def generate_from_csv(modelname, songname):
     filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
     resampled = resample_melody(filepath, BEAT, MELODY)
 
@@ -82,7 +95,7 @@ def generate_from_csv(songname):
             continue
         input_sequence.append(sample[MELODY])
 
-    result = generate_sequence(input_sequence)
+    result = generate_sequence(input_sequence, modelname)
     result['start_beat'] = resampled[0][BEAT]
     result['beats_per_chord'] = BEATS_PER_HARMONY_CHORD
     return Response(json.dumps(result), status=200, mimetype='application/json')
@@ -111,14 +124,13 @@ def generate_random(songname):
 @app.route('/melody/get_sequence/<songname>', methods=['GET'])
 def get_melody_sequence(songname):
     filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
-    rows = open(filepath, 'r').readlines()
+    melody = parse_melody(filepath)
 
     output = []
-    for row in rows:
+    for i, row in melody.iterrows():
         new_el = {}
-        data = row.split()
-        new_el[BEAT] = data[1]
-        new_el[MELODY] = data[2]
+        new_el[BEAT] = row[BEATS]
+        new_el[MELODY] = row[MELODY_ABS_PITCH]
         output.append(new_el)
 
     return Response(json.dumps(output), status=200, mimetype='application/json')
