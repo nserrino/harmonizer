@@ -22,8 +22,9 @@
 <script type="text/javascript">
 window.onload = function () {
     var SONG_NAME = 'a_hard_days_night_tdc',
-        SECONDS_PER_BEAT = 2,
-        HARMONY_OCTAVE = 3;
+        SECONDS_PER_BEAT = 1.5,
+        HARMONY_OCTAVE = 3,
+        MODEL = 'discrete_hmm_chords';
 
     player.load({
         soundfontUrl: "/static/midi-js-soundfonts/FluidR3_GM/",
@@ -44,7 +45,7 @@ window.onload = function () {
                 $.ajax({
                     type: 'get',
                     // url: '/harmony/generate_random/' + SONG_NAME,
-                    url: '/harmony/generate_from_csv/' + SONG_NAME,
+                    url: '/harmony/generate_from_csv/' + MODEL + '/' + SONG_NAME,
                     success: function (harmonyInfo) {
                         console.log("melody:", melody)
                         console.log("harmony:", harmonyInfo)
