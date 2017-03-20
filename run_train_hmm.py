@@ -1,6 +1,5 @@
 import argparse
 import json
-import numpy
 import os
 import pickle
 
@@ -8,10 +7,11 @@ from hmmlearn import hmm
 from transformation.rock_corpus_parser import HARMONY_EXT, parse_harmony
 from transformation.resample_harmony_melody import get_harmony_melody_pairs, resample_song
 from training.train_hmm import get_transition_matrix, get_start_probability, get_emission_matrix
-from training.train_hmm import NUM_MELODY_NOTES, MELODY_STATES
+from training.train_hmm import NUM_NOTES, NOTE_STATES
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--chords_list", help="Supported chords list (json)", required=True)
+parser.add_argument("--chords", help="Supported chords list (json). If not provided, the "
+                                     "generated model will output notes from [0-11]")
 parser.add_argument("--harmony", help="Harmony files directory", required=True)
 parser.add_argument("--melody", help="Melody files directory", required=True)
 parser.add_argument('--output', help="Destination to store pkl file", required=True)
@@ -29,16 +29,21 @@ for harmony_path in harmony_paths:
         parsed_harmony = parse_harmony(harmony_path)
         harmonies.append(parsed_harmony)
     except Exception as e:
-        print "Failed to parse harmony at path:", harmony_path
+        print "Failed to parse harmony at path:", harmony_path, e
+        raise e
 
-with open(args.chords_list) as f:
-    chord_list = json.loads(f.read())
+
+if args.chords is not None:
+    with open(args.chords) as f:
+        chords = json.loads(f.read())
+else:
+    chords = None
 
 # Compute transition matrix
-transition_matrix = get_transition_matrix(harmonies, chord_list)
+transition_matrix = get_transition_matrix(harmonies, chords)
 
 # Compute start probabilities
-start_probs = get_start_probability(harmonies, chord_list)
+start_probs = get_start_probability(harmonies, chords)
 
 harmony_filenames = os.listdir(harmony_root)
 melody_filenames = os.listdir(melody_root)
@@ -54,18 +59,18 @@ for pair in pairs:
         print "Encountered error on", pair['song'], ": Skipping."
 
 # Compute emission matrix
-emission_matrix = get_emission_matrix(resamples, chord_list)
+emission_matrix = get_emission_matrix(resamples, chords)
 
-# n_observations = NUM_MELODY_NOTES
-# observations = MELODY_STATES
-# n_states = len(chord_list)
-# states = chord_list
+n_observations = NUM_NOTES
+observations = NOTE_STATES
+n_states = NUM_NOTES if chords is None else len(chords)
+states = NOTE_STATES if chords is None else chords
 
-# model = hmm.MultinomialHMM(n_components=n_states, init_params="ste")
-# model.startprob_ = start_probs
-# model.transmat_ = transition_matrix
-# model.emissionprob_ = emission_matrix
+model = hmm.MultinomialHMM(n_components=n_states, init_params="ste")
+model.startprob_ = start_probs
+model.transmat_ = transition_matrix
+model.emissionprob_ = emission_matrix
 
-# out = open(args.output, 'w')
-# pickle.dump(model, out)
-# out.close()
+out = open(args.output, 'w')
+pickle.dump(model, out)
+out.close()

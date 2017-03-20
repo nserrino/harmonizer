@@ -36,8 +36,8 @@ def resample_song(harmony_path, melody_path):
     output = pandas.concat([harmony, melody])
     output = output.sort(rock_corpus_parser.BEATS).fillna(method="ffill").dropna()
 
-    int_columns = [rock_corpus_parser.HARMONY_KEY_TONIC, rock_corpus_parser.MELODY_ABS_PITCH,
-                   rock_corpus_parser.MELODY_REL_PITCH]
+    int_columns = [rock_corpus_parser.HARMONY_KEY_TONIC, rock_corpus_parser.HARMONY_REL_ROOT,
+                   rock_corpus_parser.MELODY_ABS_PITCH, rock_corpus_parser.MELODY_REL_PITCH]
 
     for col_name in int_columns:
         output[col_name] = output[col_name].astype(int)

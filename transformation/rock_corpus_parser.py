@@ -16,21 +16,22 @@ MELODY_REL_PITCH = "Melody key-relative pitch"
 
 def parse_harmony(harmony_path):
     harmony = pandas.read_csv(harmony_path, header=None, delimiter=r"\s+")
-    harmony.dropna()
     harmony.columns = [SECONDS, BEATS, ROMAN_NUMERAL, HARMONY_REL_ROOT, HARMONY_DIATONIC_ROOT,
                        HARMONY_KEY_TONIC, HARMONY_ABS_ROOT]
     # Remove data we don't need
     del harmony[SECONDS]
-    del harmony[HARMONY_REL_ROOT]
-    del harmony[HARMONY_DIATONIC_ROOT]
     del harmony[HARMONY_ABS_ROOT]
+    harmony = harmony.dropna()
+    harmony[HARMONY_DIATONIC_ROOT] = harmony[HARMONY_DIATONIC_ROOT].astype(int)
+    harmony[HARMONY_KEY_TONIC] = harmony[HARMONY_KEY_TONIC].astype(int)
+    harmony[HARMONY_REL_ROOT] = harmony[HARMONY_REL_ROOT].astype(int)
     return harmony
 
 
 def parse_melody(melody_path):
     melody = pandas.read_csv(melody_path, header=None, delimiter=r"\s+")
-    melody.dropna()
     melody.columns = [SECONDS, BEATS, MELODY_ABS_PITCH, MELODY_REL_PITCH]
     # Remove data we don't need
     del melody[SECONDS]
+    melody.dropna()
     return melody

@@ -9,8 +9,12 @@ from transformation.resample_harmony_melody import resample_melody
 app = Flask(__name__)
 
 CHORDS_LIST = 'supported_chords.json'
-MODEL_PATH = 'models/discrete_hmm.pkl'
 ROCK_CORPUS_MELODIES = 'rock-corpus/rs200_melody_nlt'
+
+MODEL_PATHS = {
+    'discrete_hmm_numerals':  'models/discrete_hmm.pkl',
+    'discrete_hmm_numeric': 'models/discrete_numeric_hmm.pkl'
+}
 
 BEAT = 'beat'
 MELODY = 'midi_note'
@@ -21,9 +25,11 @@ f = open(CHORDS_LIST, 'r')
 chords = json.load(f)
 f.close()
 
-f = open(MODEL_PATH, 'r')
-model = pickle.load(f)
-f.close()
+models = {}
+for model_name in MODEL_PATHS:
+    f = open(MODEL_PATHS[model_name], 'r')
+    models[model_name] = pickle.load(f)
+    f.close()
 
 
 @app.route("/")
