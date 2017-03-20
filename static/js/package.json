@@ -3,7 +3,8 @@
   "version": "0.0.1",
   "description": "An app that adds automatic harmonization to a melody",
   "scripts": {
-    "bundle": "browserify node_modules/tonal/index.js --standalone tonal > tonal-bundle.js"
+    "bundle-tonal": "browserify node_modules/tonal/index.js --standalone tonal > tonal-bundle.js",
+    "bundle": "browserify app.js --standalone player > bundle.js"
   },
   "main": "index.js",
   "dependencies": {

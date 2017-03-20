@@ -3,7 +3,7 @@
 <head>
     <meta http-equiv="content-type" content="text/html; charset=utf-8" />
     <script src="/static/js/node_modules/jquery/dist/jquery.min.js"></script>
-    <script src="/static/js/tonal-bundle.js" type="text/javascript"></script>
+    <script src="/static/js/bundle.js" type="text/javascript"></script>
     <!-- polyfill -->
     <script src="/static/js/node_modules/midi/inc/shim/Base64.js" type="text/javascript"></script>
     <script src="/static/js/node_modules/midi/inc/shim/Base64binary.js" type="text/javascript"></script>
@@ -22,6 +22,10 @@
 <body>
 <script type="text/javascript">
 window.onload = function () {
+    var SONG_NAME = 'a_hard_days_night_tdc',
+        SECONDS_PER_BEAT = 2,
+        HARMONY_OCTAVE = 3;
+
     MIDI.loadPlugin({
         soundfontUrl: "/static/midi-js-soundfonts/FluidR3_GM/",
         instrument: ["acoustic_grand_piano", "acoustic_guitar_nylon"],
@@ -29,93 +33,8 @@ window.onload = function () {
             console.log(state, progress);
         },
         onsuccess: function() {
-            var SECONDS_PER_BEAT = 2,
-                HARMONY_OCTAVE = 3,
-                SONG_NAME = 'brown-eyed_girl_dt';
-
-            var TONIC_INT_TO_STRING = [
-                'C',
-                'Db',
-                'D',
-                'Eb',
-                'E',
-                'F',
-                'Gb',
-                'G',
-                'Ab',
-                'A',
-                'Bb',
-                'B'
-            ];
-
-            var TONIC_STRING_TO_INT = {
-                'C': 0,
-                'C#': 1,
-                'Db': 1,
-                'D': 2,
-                'D#': 3,
-                'Eb': 3,
-                'E': 4,
-                'F': 5,
-                'F#': 6,
-                'Gb': 6,
-                'G': 7,
-                'G#': 8,
-                'Ab': 8,
-                'A': 9,
-                'A#': 10,
-                'Bb': 10,
-                'B': 11
-            };
-
             MIDI.programChange(0, MIDI.GM.byName["acoustic_grand_piano"].number);
-            MIDI.programChange(1, MIDI.GM.byName["acoustic_guitar_nylon"].number);
-
-            function playMelody(melody) {
-                for (var i = 0; i < melody.length; ++i) {
-                    var letterKey = 'C',
-                        beat = melody[i].beat,
-                        melodyNote = melody[i].midi_note,
-                        nextBeat;
-
-                    if (i == melody.length - 1) {
-                        nextBeat = beat + 1;
-                    } else {
-                        nextBeat = melody[i + 1].beat;
-                    }
-
-                    MIDI.noteOn(0, melodyNote, 100, SECONDS_PER_BEAT * beat);
-                    MIDI.noteOff(0, melodyNote, SECONDS_PER_BEAT * nextBeat);
-                }
-            }
-
-            function playHarmony(harmony) {
-                var letterKey = TONIC_INT_TO_STRING[harmony['key']],
-                    beatsPerChord = harmony['beats_per_chord'],
-                    currentBeat = harmony['start_beat'];
-
-                for (var i = 0; i < harmony.sequence.length; ++i) {
-                    var romanNumeral = harmony.sequence[i],
-                        nextBeat = currentBeat + beatsPerChord;
-
-                    // Figure out the progression and then play the notes from that chord.
-                    var progression = tonal.progression.concrete(romanNumeral, letterKey),
-                        chord = tonal.chord.notes(progression[0]);
-
-                    for (var j = 0; j < chord.length; ++j) {
-                        // Make sure to increase the octave up if our root note of the chord is "above" the accompanying notes.
-                        var octave = (j > 0 &&
-                            TONIC_STRING_TO_INT[chord[0]] > TONIC_STRING_TO_INT[chord[j]]) ?
-                            HARMONY_OCTAVE + 1 : HARMONY_OCTAVE,
-                            midiNote = tonal.midi.toMidi(chord[j] + octave);
-
-                        MIDI.noteOn(1, midiNote, 30, SECONDS_PER_BEAT * currentBeat);
-                        MIDI.noteOff(1, midiNote, SECONDS_PER_BEAT * nextBeat);
-                    }
-
-                    currentBeat = nextBeat;
-                }
-            }
+            MIDI.programChange(1, MIDI.GM.byName["acoustic_grand_piano"].number);
 
             $.ajax({
                 type: 'get',
@@ -128,8 +47,8 @@ window.onload = function () {
                         success: function (harmonyInfo) {
                             console.log("melody:", melody)
                             console.log("harmony:", harmonyInfo)
-                            playMelody(melody);
-                            playHarmony(harmonyInfo);
+                            player.playMelody(melody, SECONDS_PER_BEAT);
+                            player.playHarmony(harmonyInfo, SECONDS_PER_BEAT, HARMONY_OCTAVE);
                         },
                         error: function() {
                             console.log(arguments)
