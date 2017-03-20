@@ -1,6 +1,21 @@
 var tonal = require('tonal'),
-    constants = require('./constants'),
-    midi = require('midi/inc/shim/WebAudioAPI');
+    constants = require('./constants');
+
+// TODO: Move loading of MIDI module using require statement to this file.
+function load(params, done) {
+    MIDI.loadPlugin({
+        soundfontUrl: params.soundfontUrl,
+        instrument: params.instruments,
+        onsuccess: function() {
+            for (var channel in params.channels) {
+                var instrument = params.channels[channel];
+                MIDI.programChange(channel, MIDI.GM.byName[instrument].number);
+            }
+            return done();
+        },
+        onerror: done
+    });
+}
 
 function playMelody(melody, secondsPerBeat) {
     for (var i = 0; i < melody.length; ++i) {
@@ -50,6 +65,7 @@ function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
 }
 
 module.exports = {
+    load: load,
     playMelody: playMelody,
     playHarmony: playHarmony
 }

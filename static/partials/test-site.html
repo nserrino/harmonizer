@@ -5,7 +5,6 @@
     <script src="/static/js/node_modules/jquery/dist/jquery.min.js"></script>
     <script src="/static/js/bundle.js" type="text/javascript"></script>
     <!-- polyfill -->
-    <script src="/static/js/node_modules/midi/inc/shim/Base64.js" type="text/javascript"></script>
     <script src="/static/js/node_modules/midi/inc/shim/Base64binary.js" type="text/javascript"></script>
     <script src="/static/js/node_modules/midi/inc/shim/WebAudioAPI.js" type="text/javascript"></script>
     <!-- midi.js package -->
@@ -26,37 +25,38 @@ window.onload = function () {
         SECONDS_PER_BEAT = 2,
         HARMONY_OCTAVE = 3;
 
-    MIDI.loadPlugin({
+    player.load({
         soundfontUrl: "/static/midi-js-soundfonts/FluidR3_GM/",
-        instrument: ["acoustic_grand_piano", "acoustic_guitar_nylon"],
-        onprogress: function(state, progress) {
-            console.log(state, progress);
-        },
-        onsuccess: function() {
-            MIDI.programChange(0, MIDI.GM.byName["acoustic_grand_piano"].number);
-            MIDI.programChange(1, MIDI.GM.byName["acoustic_grand_piano"].number);
-
-            $.ajax({
-                type: 'get',
-                url: '/melody/get_sequence/' + SONG_NAME,
-                success: function (melody) {
-                    $.ajax({
-                        type: 'get',
-                        // url: '/harmony/generate_random/' + SONG_NAME,
-                        url: '/harmony/generate_from_csv/' + SONG_NAME,
-                        success: function (harmonyInfo) {
-                            console.log("melody:", melody)
-                            console.log("harmony:", harmonyInfo)
-                            player.playMelody(melody, SECONDS_PER_BEAT);
-                            player.playHarmony(harmonyInfo, SECONDS_PER_BEAT, HARMONY_OCTAVE);
-                        },
-                        error: function() {
-                            console.log(arguments)
-                        }
-                    })
-                }
-            });
+        instruments: ["acoustic_grand_piano", "acoustic_guitar_nylon"],
+        channels: {
+            0: "acoustic_grand_piano",
+            1: "acoustic_grand_piano"
         }
+    }, function(err) {
+        if (err) {
+            console.log(err);
+        }
+
+        $.ajax({
+            type: 'get',
+            url: '/melody/get_sequence/' + SONG_NAME,
+            success: function (melody) {
+                $.ajax({
+                    type: 'get',
+                    // url: '/harmony/generate_random/' + SONG_NAME,
+                    url: '/harmony/generate_from_csv/' + SONG_NAME,
+                    success: function (harmonyInfo) {
+                        console.log("melody:", melody)
+                        console.log("harmony:", harmonyInfo)
+                        player.playMelody(melody, SECONDS_PER_BEAT);
+                        player.playHarmony(harmonyInfo, SECONDS_PER_BEAT, HARMONY_OCTAVE);
+                    },
+                    error: function() {
+                        console.log(arguments)
+                    }
+                })
+            }
+        });
     });
 };
 </script>
