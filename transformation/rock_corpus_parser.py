@@ -20,7 +20,6 @@ def parse_harmony(harmony_path):
                        HARMONY_KEY_TONIC, HARMONY_ABS_ROOT]
     # Remove data we don't need
     del harmony[SECONDS]
-    del harmony[HARMONY_ABS_ROOT]
     harmony = harmony.dropna()
     harmony[HARMONY_DIATONIC_ROOT] = harmony[HARMONY_DIATONIC_ROOT].astype(int)
     harmony[HARMONY_KEY_TONIC] = harmony[HARMONY_KEY_TONIC].astype(int)
