@@ -1,6 +1,5 @@
 import json
-from mido import MidiFile
-from model_server import generate_sequence, generate_from_csv, get_melody_sequence, get_melody_seq, create_midi
+from model_server import generate_sequence, generate_from_csv, get_melody_sequence
 
 
 def test_generate_sequence():
@@ -16,9 +15,8 @@ def test_generate_from_csv():
     assert(output.status_code == 200)
     result = json.loads(output.get_data())
     assert(result['key'] == 2)
-    assert(result['beats_per_chord'] == 2)
     assert(result['start_beat'] == 1.0)
-    assert(result['sequence'][0] == 0)
+    assert(result['sequence'][0] == 5)
 
 
 def test_get_melody_sequence():
