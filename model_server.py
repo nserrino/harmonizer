@@ -48,16 +48,6 @@ def index():
     return send_file('static/partials/index.html')
 
 
-@app.route('/lol.mid')
-def hello():
-    return send_file('lol.mid')
-
-
-@app.route('/test.mid')
-def hello2():
-    return send_file('test.mid')
-
-
 def midi_notes_to_relative(sequence, offset):
     # MIDI note 60 in key 7 should become 5. 60-7 = 53 -> 53 % 12 = 5.
     return [(s - offset) % 12 for s in sequence]
@@ -71,7 +61,8 @@ def generate_sequence(sequence, model_type):
     current = {
         'logprob': float("-inf"),
         'key': None,
-        'sequence': None
+        'sequence': None,
+        'numeral': None
     }
 
     for key in xrange(12):
@@ -85,8 +76,10 @@ def generate_sequence(sequence, model_type):
             current['key'] = key
             if model_type == 'discrete_hmm_chords':
                 current['sequence'] = [chords[s] for s in states]
+                current['numeral'] = True
             else:
                 current['sequence'] = states.tolist()
+                current['numeral'] = False
 
     return current
 
@@ -122,7 +115,6 @@ def generate_from_csv(modelname, songname):
 
     result = generate_sequence(input_sequence, modelname)
     result['start_beat'] = resampled[0][BEAT]
-    result['numeral'] = True
     return Response(json.dumps(result), status=200, mimetype='application/json')
 
 

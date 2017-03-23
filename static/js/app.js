@@ -36,17 +36,25 @@ function playMelody(melody, secondsPerBeat) {
     }
 }
 
-function playHarmonyNumerals(harmony, secondsPerBeat, harmonyOctave) {
-    var letterKey = constants.TONIC_INT_TO_STRING[harmony['key']],
-        currentBeat = harmony['start_beat'];
+function noteToNumeral(relNoteInt, keyInt) {
+    var absNote = (relNoteInt + keyInt) % 12,
+        letterNote = constants.TONIC_INT_TO_STRING[absNote],
+        letterKey = constants.TONIC_INT_TO_STRING[keyInt],
+        numeral = tonal.progression.abstract(letterNote, letterKey);
+    return numeral[0];
+}
 
-    if (!harmony['numeral']) {
-        throw new Error('Non-numeral harmony sequences not supported yet.')
-    }
+function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
+    var letterKey = constants.TONIC_INT_TO_STRING[harmony['key']],
+        currentBeat = harmony['start_beat'],
+        isNumeral = harmony['numeral'];
 
     for (var i = 0; i < harmony.sequence.length; ++i) {
-        var romanNumeral = harmony.sequence[i],
-            nextBeat = currentBeat + beatsPerChord;
+        var romanNumeral = isNumeral ?
+            harmony.sequence[i] : noteToNumeral(harmony.sequence[i], harmony['key']),
+            nextBeat = currentBeat + 1;
+
+        console.log(romanNumeral)
 
         // Figure out the progression and then play the notes from that chord.
         var progression = tonal.progression.concrete(romanNumeral, letterKey),
