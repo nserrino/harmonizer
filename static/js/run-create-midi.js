@@ -1,4 +1,4 @@
-var createMidi = require('./create-midi'),
+var createMidi = require('./create-midi').createMidi,
     minimist = require('minimist')
     request = require('request'),
     fs = require('fs');

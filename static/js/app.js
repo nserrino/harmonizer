@@ -1,5 +1,6 @@
 var tonal = require('tonal'),
-    constants = require('./constants');
+    constants = require('./constants'),
+    createMidi = require('./create-midi');
 
 // TODO: Move loading of MIDI module using require statement to this file.
 function load(params, done) {
@@ -35,10 +36,13 @@ function playMelody(melody, secondsPerBeat) {
     }
 }
 
-function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
+function playHarmonyNumerals(harmony, secondsPerBeat, harmonyOctave) {
     var letterKey = constants.TONIC_INT_TO_STRING[harmony['key']],
-        beatsPerChord = harmony['beats_per_chord'],
         currentBeat = harmony['start_beat'];
+
+    if (!harmony['numeral']) {
+        throw new Error('Non-numeral harmony sequences not supported yet.')
+    }
 
     for (var i = 0; i < harmony.sequence.length; ++i) {
         var romanNumeral = harmony.sequence[i],
@@ -65,7 +69,8 @@ function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
 }
 
 module.exports = {
-    createMidi: require('./create-midi'),
+    createMidi: createMidi.createMidi,
+    createMidiBase64: createMidi.createMidiBase64,
     load: load,
     playMelody: playMelody,
     playHarmony: playHarmony

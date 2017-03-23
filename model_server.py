@@ -118,13 +118,11 @@ def generate_from_csv(modelname, songname):
     # grab a melody note at each BEATS_PER_HARMONY_CHORD interval.
     input_sequence = []
     for index, sample in enumerate(resampled):
-        if index % BEATS_PER_HARMONY_CHORD > 0:
-            continue
         input_sequence.append(sample[MIDI_NOTE])
 
     result = generate_sequence(input_sequence, modelname)
     result['start_beat'] = resampled[0][BEAT]
-    result['beats_per_chord'] = BEATS_PER_HARMONY_CHORD
+    result['numeral'] = True
     return Response(json.dumps(result), status=200, mimetype='application/json')
 
 

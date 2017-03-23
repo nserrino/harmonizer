@@ -27,7 +27,7 @@
 <script type="text/javascript">
 window.onload = function () {
     var SONG_NAME = 'a_hard_days_night_tdc',
-        SECONDS_PER_BEAT = 1.5,
+        BEATS_PER_SECOND = 5,
         HARMONY_OCTAVE = 3,
         MODEL = 'discrete_hmm_chords';
 
@@ -43,9 +43,9 @@ window.onload = function () {
             type: 'get',
             url: '/melody/get_sequence/' + SONG_NAME,
             success: function (sequence) {
-                var midi = player.createMidi(sequence, 1/SECONDS_PER_BEAT),
-                    base64 = 'data:audio/midi;base64,' + btoa(midi.toBytes());
-                MIDI.Player.loadFile(base64, MIDI.Player.start, function() {
+                console.log(sequence)
+                var midiBytes = player.createMidiBase64(sequence, BEATS_PER_SECOND);
+                MIDI.Player.loadFile(midiBytes, MIDI.Player.start, function() {
                     console.log("Progress")
                 }, function(err) {
                     console.log("error", err)
