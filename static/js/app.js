@@ -65,6 +65,7 @@ function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
 }
 
 module.exports = {
+    createMidi: require('./create-midi'),
     load: load,
     playMelody: playMelody,
     playHarmony: playHarmony

@@ -129,7 +129,7 @@
         };
         player.getNextSong = function(n) {
             var id = Math.abs((songid += n) % song.length);
-            player.loadFile(song[id], player.start); // load MIDI
+            var res = player.loadFile(song[id], player.start); // load MIDI
         };
         player.setAnimation(function(data, element) {
             var percent = data.now / data.end;
@@ -152,9 +152,9 @@
     var songid = 0;
 
     var song = [
-        "/static/midi/test.mid",
-        "/static/midi/deb_clai_format0.mid",
-        "/static/midi/deb_prel_format0.mid"
+        "/static/midi/test2.mid"//,
+        // "/static/midi/deb_clai_format0.mid"//,
+        // "/static/midi/deb_prel_format0.mid"
     ];
 </script>
 </body>

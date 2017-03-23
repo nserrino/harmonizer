@@ -15,6 +15,7 @@
     "lodash": "^4.17.4",
     "midi": "github:mudcube/MIDI.js",
     "minimist": "^1.2.0",
+    "request": "^2.81.0",
     "tonal": "^0.69.1"
   },
   "engines": {
