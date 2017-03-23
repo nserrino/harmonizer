@@ -102,40 +102,6 @@ def get_melody_seq(melody_filepath):
     return output
 
 
-def create_midi(sequence):
-    tempo = bpm2tempo(BEATS_PER_MINUTE)
-    mid = MidiFile()
-    track = MidiTrack()
-    mid.tracks.append(track)
-    track.append(Message('program_change', program=12, time=0))
-    track.append(MetaMessage('set_tempo', tempo=tempo))
-
-    for i in xrange(len(sequence)):
-        note_on = sequence[i][BEAT]
-        note = sequence[i][MIDI_NOTE]
-
-        if i == len(sequence) - 1:
-            note_off = note_on + 3
-        else:
-            note_off = sequence[i + 1][BEAT]
-
-        start_time_s = note_on / float(BEATS_PER_SECOND)
-        end_time_s = note_off / float(BEATS_PER_SECOND)
-        start_tick = int(second2tick(start_time_s, TICKS_PER_BEAT, tempo))
-        end_tick = int(second2tick(end_time_s, TICKS_PER_BEAT, tempo))
-
-        if i < 10:
-            print "beat:", note_on, ", ", note_off
-            print "sec:", start_time_s, ", ", end_time_s
-            print "tick:", start_tick, ", ", end_tick
-            print "\n"
-
-        track.append(Message('note_on', note=note, velocity=VELOCITY, time=start_tick))
-        track.append(Message('note_off', note=note, velocity=VELOCITY, time=end_tick))
-
-    return mid
-
-
 @app.route('/harmony/generate_from_notes/<modelname>', methods=['POST'])
 def generate_from_notes(modelname):
     model_type = request.json['model_type']
