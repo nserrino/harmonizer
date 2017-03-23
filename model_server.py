@@ -5,7 +5,7 @@ import os
 import pickle
 import random
 from flask import Flask, send_file, Response, request
-from mido import MetaMessage, Message, MidiFile, MidiTrack, bpm2tempo, second2tick
+from keras.models import load_model
 from transformation.resample_harmony_melody import resample_melody
 from transformation.rock_corpus_parser import parse_melody, BEATS, MELODY_ABS_PITCH
 
@@ -17,10 +17,10 @@ ROCK_CORPUS_MELODIES = 'rock-corpus/rs200_melody_nlt'
 MODEL_PATHS = {
     # Takes in relative melody notes, outputs roman numeral harmony chords
     # E.g. ["I", "IV", "I", "IV"]
-    'discrete_hmm_chords':  'models/discrete_hmm_chords.pkl',
+    'discrete_chords_hmm':  'models/discrete_chords_hmm.pkl',
     # Takes in relative melody notes, outputs relative harmony notes
     # E.g. [0, 5, 0, 5]
-    'discrete_hmm_numeric': 'models/discrete_hmm_numeric.pkl'
+    'discrete_numeric_hmm': 'models/discrete_numeric_hmm.pkl'
 }
 
 # Sequence length outputted by the endpoint, in beats.
@@ -41,9 +41,13 @@ f.close()
 
 models = {}
 for model_name in MODEL_PATHS:
-    f = open(MODEL_PATHS[model_name], 'r')
-    models[model_name] = pickle.load(f)
-    f.close()
+    model_path = MODEL_PATHS[model_name]
+    if model_path.endswith('.pkl'):
+        f = open(MODEL_PATHS[model_name], 'r')
+        models[model_name] = pickle.load(f)
+        f.close()
+    elif model_path.endswith('.h5'):
+        models[model_name] = load_model(model_path)
 
 
 @app.route("/")
@@ -56,11 +60,7 @@ def midi_notes_to_relative(sequence, offset):
     return [(s - offset) % 12 for s in sequence]
 
 
-def generate_sequence(sequence, model_type):
-    if model_type not in models:
-        raise Exception("Model " + model_type + " does not exist on server")
-    model = models[model_type]
-
+def generate_hmm_sequence(sequence, model, is_roman_numeral):
     current = {
         'logprob': float("-inf"),
         'key': None,
@@ -77,7 +77,7 @@ def generate_sequence(sequence, model_type):
         if (logprob > current['logprob']):
             current['logprob'] = logprob
             current['key'] = key
-            if model_type == 'discrete_hmm_chords':
+            if is_roman_numeral:
                 current['sequence'] = [chords[s] for s in states]
                 current['numeral'] = True
             else:
@@ -85,6 +85,21 @@ def generate_sequence(sequence, model_type):
                 current['numeral'] = False
 
     return current
+
+
+def generate_lstm_sequence(sequence, model):
+    return
+
+
+def generate_sequence(sequence, model_type):
+    if model_type not in models:
+        raise Exception("Model " + model_type + " does not exist on server")
+
+    model = models[model_type]
+    if model_type.endswith('hmm'):
+        return generate_hmm_sequence(sequence, model, "chords" in model_type)
+    elif model_type.endswith('lstm'):
+        return generate_lstm_sequence(sequence, model)
 
 
 @app.route('/harmony/generate_from_notes/<modelname>', methods=['POST'])
