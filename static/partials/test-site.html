@@ -39,15 +39,19 @@ window.onload = function () {
             1: "acoustic_grand_piano"
         }
     }, function(err) {
-        if (err) {
-            console.log(err);
-        }
-
-        MIDI.Player.loadFile('/static/midi/hard_days_night_tdc.mid', MIDI.Player.start, function() {
-            console.log("Progress")
-        }, function(err) {
-            console.log("error", err)
-        })
+        $.ajax({
+            type: 'get',
+            url: '/melody/get_sequence/' + SONG_NAME,
+            success: function (sequence) {
+                var midi = player.createMidi(sequence, 1/SECONDS_PER_BEAT),
+                    base64 = 'data:audio/midi;base64,' + btoa(midi.toBytes());
+                MIDI.Player.loadFile(base64, MIDI.Player.start, function() {
+                    console.log("Progress")
+                }, function(err) {
+                    console.log("error", err)
+                })
+            }
+        });
     });
 };
 </script>
