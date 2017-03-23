@@ -48,6 +48,7 @@ if (args.train):
     model = train_model(args.timesteps, num_notes, trainX, trainY)
     model.save(args.model)
 else:
+    print "Skipping training, loading model from:", args.model
     model = load_model(args.model)
 
 if args.eval:
@@ -63,14 +64,14 @@ if args.eval:
         try:
             resample = resample_song(os.path.join(harmony_root, pair['harmony']),
                                      os.path.join(melody_root, pair['melody']))
-            training_resamples.append(resample)
+            test_resamples.append(resample)
         except Exception as e:
             print "Encountered error on", pair['song'], ": Skipping."
-    testX, testY = prepare_samples(training_resamples, args.synth, args.timesteps)
 
+    testX, testY = prepare_samples(test_resamples, args.synth, args.timesteps)
     generated_harmonies = model.predict(testX, batch_size=32, verbose=1)
     print "Printing 10 generated harmonies: "
-    for i in 10:
+    for i in xrange(10):
         try:
             result = generated_harmonies[i]
             print "Result:  [",
