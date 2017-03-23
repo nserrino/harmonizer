@@ -91,6 +91,7 @@ def resample_melody(location, beat_col, melody_col):
     dedup = combined.drop_duplicates(subset=beat_col)
     sort = dedup.sort([beat_col])
     filled = sort.fillna(method='ffill').dropna()
+    filled[melody_col] = filled[melody_col].astype('int')
 
     output = []
     for i, row in filled.iterrows():

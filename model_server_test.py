@@ -1,5 +1,6 @@
 import json
-from model_server import generate_sequence, generate_from_csv, get_melody_sequence
+from mido import MidiFile
+from model_server import generate_sequence, generate_from_csv, get_melody_sequence, get_melody_seq, create_midi
 
 
 def test_generate_sequence():

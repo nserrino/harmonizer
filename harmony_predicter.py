@@ -11,13 +11,13 @@ from transformation.resample_harmony_melody import resample_song, get_harmony_me
 timesteps = 25
 num_notes = 12
 
-def prepare_training_test_sets():
+def prepare_training_test_sets(synth):
     trainX = []
     trainY = []
     testX = []
     testY = []
 
-    resamples_path = 'pkl/new_resamples_abs.pkl'
+    resamples_path = 'pkl/resamples.pkl' if not synth else 'pkl/resamples-synthesized.pkl'
 
     try:
         f = open(resamples_path, 'r')
@@ -34,16 +34,22 @@ def prepare_training_test_sets():
             try:
                 resample = resample_song(os.path.join(harmony_root, pair['harmony']),
                                          os.path.join(melody_root, pair['melody']))
-                resample["Melody relative pitch in C"] = resample[MELODY_REL_PITCH].mod(12)
-                resamples.append(resample)
+                if not synth:
+                    resamples.append(resample)
+                else:
+                    for root in xrange(12):
+                        copy = resample.copy()
+                        copy[MELODY_REL_PITCH] = copy[MELODY_REL_PITCH].add(root).mod(12)
+                        copy[HARMONY_REL_ROOT] = copy[HARMONY_REL_ROOT].add(root).mod(12)
+                        resamples.append(copy)
             except Exception as e:
                 print "Encountered error on", pair['song'], ": Skipping."
 
-        output = open('pkl/new_resamples.pkl', 'w')
+        output = open(resamples_path, 'w')
         pickle.dump(resamples, output)
         output.close()
 
-    shuffled_chunks_path = 'pkl/shuffled.pkl'
+    shuffled_chunks_path = 'pkl/shuffled.pkl' if not synth else 'pkl/shuffled-synthesized.pkl'
 
     try:
         f = open(shuffled_chunks_path, 'r')
@@ -63,8 +69,8 @@ def prepare_training_test_sets():
 
     for i in xrange(len(chunked)):
         chunk = chunked[i]
-        rel_mel = chunk["Melody relative pitch in C"].get_values().tolist()
-        rel_har = chunk[HARMONY_ABS_ROOT].get_values().tolist()
+        rel_mel = chunk[MELODY_REL_PITCH].get_values().tolist()
+        rel_har = chunk[HARMONY_REL_ROOT].get_values().tolist()
         if i % 100 < 80:
             trainX.append(to_categorical(rel_mel, num_classes=12).tolist())
             trainY.append(to_categorical(rel_har, num_classes=12).tolist())
@@ -78,10 +84,11 @@ parser = argparse.ArgumentParser()
 parser.add_argument("--model", help="Model path.", required=True)
 parser.add_argument("--train", help="Train the model", action="store_true")
 parser.add_argument("--eval", help="Evaluate the model", action="store_true")
+parser.add_argument("--synth", help="Synthesize more training data", action="store_true")
 args = parser.parse_args()
 
 
-trainX, trainY, testX, testY = prepare_training_test_sets()
+trainX, trainY, testX, testY = prepare_training_test_sets(args.synth)
 
 if args.train:
     inputs = Input(shape=(timesteps, num_notes))
@@ -109,3 +116,5 @@ if args.eval:
         except Exception as e:
             print generated_harmonies[i]
             print e
+    result = harmony_generator.evaluate(testX, testY)
+    print "result", result

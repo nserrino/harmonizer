@@ -1,9 +1,11 @@
-import random
-import os
-import numpy
+import io
 import json
+import numpy
+import os
 import pickle
+import random
 from flask import Flask, send_file, Response, request
+from mido import MetaMessage, Message, MidiFile, MidiTrack, bpm2tempo, second2tick
 from transformation.resample_harmony_melody import resample_melody
 from transformation.rock_corpus_parser import parse_melody, BEATS, MELODY_ABS_PITCH
 
@@ -22,9 +24,13 @@ MODEL_PATHS = {
 }
 
 BEAT = 'beat'
-MELODY = 'midi_note'
+MIDI_NOTE = 'midi_note'
 
+BEATS_PER_SECOND = 2
+BEATS_PER_MINUTE = 60 * BEATS_PER_SECOND
 BEATS_PER_HARMONY_CHORD = 2
+TICKS_PER_BEAT = 200
+VELOCITY = 100
 
 f = open(CHORDS_LIST, 'r')
 chords = json.load(f)
@@ -40,6 +46,16 @@ for model_name in MODEL_PATHS:
 @app.route("/")
 def index():
     return send_file('static/partials/index.html')
+
+
+@app.route('/lol.mid')
+def hello():
+    return send_file('lol.mid')
+
+
+@app.route('/test.mid')
+def hello2():
+    return send_file('test.mid')
 
 
 def midi_notes_to_relative(sequence, offset):
@@ -75,6 +91,51 @@ def generate_sequence(sequence, model_type):
     return current
 
 
+def get_melody_seq(melody_filepath):
+    melody = parse_melody(melody_filepath)
+    output = []
+    for i, row in melody.iterrows():
+        new_el = {}
+        new_el[BEAT] = row[BEATS]
+        new_el[MIDI_NOTE] = int(row[MELODY_ABS_PITCH])
+        output.append(new_el)
+    return output
+
+
+def create_midi(sequence):
+    tempo = bpm2tempo(BEATS_PER_MINUTE)
+    mid = MidiFile()
+    track = MidiTrack()
+    mid.tracks.append(track)
+    track.append(Message('program_change', program=12, time=0))
+    track.append(MetaMessage('set_tempo', tempo=tempo))
+
+    for i in xrange(len(sequence)):
+        note_on = sequence[i][BEAT]
+        note = sequence[i][MIDI_NOTE]
+
+        if i == len(sequence) - 1:
+            note_off = note_on + 3
+        else:
+            note_off = sequence[i + 1][BEAT]
+
+        start_time_s = note_on / float(BEATS_PER_SECOND)
+        end_time_s = note_off / float(BEATS_PER_SECOND)
+        start_tick = int(second2tick(start_time_s, TICKS_PER_BEAT, tempo))
+        end_tick = int(second2tick(end_time_s, TICKS_PER_BEAT, tempo))
+
+        if i < 10:
+            print "beat:", note_on, ", ", note_off
+            print "sec:", start_time_s, ", ", end_time_s
+            print "tick:", start_tick, ", ", end_tick
+            print "\n"
+
+        track.append(Message('note_on', note=note, velocity=VELOCITY, time=start_tick))
+        track.append(Message('note_off', note=note, velocity=VELOCITY, time=end_tick))
+
+    return mid
+
+
 @app.route('/harmony/generate_from_notes/<modelname>', methods=['POST'])
 def generate_from_notes(modelname):
     model_type = request.json['model_type']
@@ -86,14 +147,14 @@ def generate_from_notes(modelname):
 @app.route('/harmony/generate_from_csv/<modelname>/<songname>', methods=['GET'])
 def generate_from_csv(modelname, songname):
     filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
-    resampled = resample_melody(filepath, BEAT, MELODY)
+    resampled = resample_melody(filepath, BEAT, MIDI_NOTE)
 
     # grab a melody note at each BEATS_PER_HARMONY_CHORD interval.
     input_sequence = []
     for index, sample in enumerate(resampled):
         if index % BEATS_PER_HARMONY_CHORD > 0:
             continue
-        input_sequence.append(sample[MELODY])
+        input_sequence.append(sample[MIDI_NOTE])
 
     result = generate_sequence(input_sequence, modelname)
     result['start_beat'] = resampled[0][BEAT]
@@ -104,7 +165,7 @@ def generate_from_csv(modelname, songname):
 @app.route('/harmony/generate_random/<songname>', methods=['GET'])
 def generate_random(songname):
     filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
-    resampled = resample_melody(filepath, BEAT, MELODY)
+    resampled = resample_melody(filepath, BEAT, MIDI_NOTE)
 
     # grab a melody note at each BEATS_PER_HARMONY_CHORD interval.
     sequence = []
@@ -124,16 +185,13 @@ def generate_random(songname):
 @app.route('/melody/get_sequence/<songname>', methods=['GET'])
 def get_melody_sequence(songname):
     filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
-    melody = parse_melody(filepath)
+    sequence = get_melody_seq(filepath)
+    return Response(json.dumps(sequence), status=200, mimetype='application/json')
 
-    output = []
-    for i, row in melody.iterrows():
-        new_el = {}
-        new_el[BEAT] = row[BEATS]
-        new_el[MELODY] = row[MELODY_ABS_PITCH]
-        output.append(new_el)
 
-    return Response(json.dumps(output), status=200, mimetype='application/json')
+@app.route('/midi/harmonized/<modelname>/<songname>', methods=['GET'])
+def get_harmonized_midi(modelname, songname):
+    return
 
 
 if __name__ == "__main__":

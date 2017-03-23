@@ -33,4 +33,6 @@ def parse_melody(melody_path):
     # Remove data we don't need
     del melody[SECONDS]
     melody.dropna()
+    melody[MELODY_ABS_PITCH] = melody[MELODY_ABS_PITCH].astype(int)
+    melody[MELODY_REL_PITCH] = melody[MELODY_REL_PITCH].astype(int)
     return melody
