@@ -18,7 +18,7 @@ function load(params, done) {
     });
 }
 
-function playMelody(melody, secondsPerBeat) {
+function playMelody(melody, secondsPerBeat, velocity) {
     for (var i = 0; i < melody.length; ++i) {
         var letterKey = 'C',
             beat = melody[i].beat,
@@ -31,7 +31,7 @@ function playMelody(melody, secondsPerBeat) {
             nextBeat = melody[i + 1].beat;
         }
 
-        MIDI.noteOn(0, melodyNote, 100, secondsPerBeat * beat);
+        MIDI.noteOn(0, melodyNote, velocity, secondsPerBeat * beat);
         MIDI.noteOff(0, melodyNote, secondsPerBeat * nextBeat);
     }
 }
@@ -44,7 +44,58 @@ function noteToNumeral(relNoteInt, keyInt) {
     return numeral[0];
 }
 
-function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
+function bucketRepeatedChords(sequence) {
+    var output = [],
+        lastChord;
+
+    for (var i = 0; i < sequence.length; ++i) {
+        var newChord = sequence[i];
+        if (newChord !== lastChord) {
+            output.push({
+                numBeats: 1,
+                chord: newChord
+            })
+        } else {
+            output[output.length - 1].numBeats++;
+        }
+        lastChord = newChord;
+    }
+
+    return output;
+}
+
+function playHarmonyMerged(harmony, secondsPerBeat, harmonyOctave, velocity) {
+    var letterKey = constants.TONIC_INT_TO_STRING[harmony['key']],
+        currentBeat = harmony['start_beat'],
+        isNumeral = harmony['numeral'],
+        bucketed = bucketRepeatedChords(harmony.sequence);
+
+    for (var i = 0; i < bucketed.length; ++i) {
+        var romanNumeral = isNumeral ? bucketed[i].chord :
+            noteToNumeral(bucketed[i].chord, harmony['key']),
+            duration = bucketed[i].numBeats;
+
+        // Figure out the progression and then play the notes from that chord.
+        var progression = tonal.progression.concrete(romanNumeral, letterKey),
+            chord = tonal.chord.notes(progression[0]);
+
+        for (var j = 0; j < chord.length; ++j) {
+            // Make sure to increase the octave up if our root note of the chord is "above" the
+            // accompanying notes.
+            var octave = (j > 0 &&
+                constants.TONIC_STRING_TO_INT[chord[0]] >
+                constants.TONIC_STRING_TO_INT[chord[j]]) ?
+                harmonyOctave + 1 : harmonyOctave,
+                midiNote = tonal.midi.toMidi(chord[j] + octave);
+
+            MIDI.noteOn(1, midiNote, velocity, secondsPerBeat * currentBeat);
+            MIDI.noteOff(1, midiNote, secondsPerBeat * (currentBeat + duration));
+        }
+        currentBeat += duration;
+    }
+}
+
+function playHarmony(harmony, secondsPerBeat, harmonyOctave, velocity) {
     var letterKey = constants.TONIC_INT_TO_STRING[harmony['key']],
         currentBeat = harmony['start_beat'],
         isNumeral = harmony['numeral'];
@@ -53,8 +104,6 @@ function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
         var romanNumeral = isNumeral ?
             harmony.sequence[i] : noteToNumeral(harmony.sequence[i], harmony['key']),
             nextBeat = currentBeat + 1;
-
-        console.log(romanNumeral)
 
         // Figure out the progression and then play the notes from that chord.
         var progression = tonal.progression.concrete(romanNumeral, letterKey),
@@ -68,10 +117,9 @@ function playHarmony(harmony, secondsPerBeat, harmonyOctave) {
                 harmonyOctave + 1 : harmonyOctave,
                 midiNote = tonal.midi.toMidi(chord[j] + octave);
 
-            MIDI.noteOn(1, midiNote, 30, secondsPerBeat * currentBeat);
+            MIDI.noteOn(1, midiNote, velocity, secondsPerBeat * currentBeat);
             MIDI.noteOff(1, midiNote, secondsPerBeat * nextBeat);
         }
-
         currentBeat = nextBeat;
     }
 }
@@ -81,5 +129,6 @@ module.exports = {
     createMidiBase64: createMidi.createMidiBase64,
     load: load,
     playMelody: playMelody,
-    playHarmony: playHarmony
+    playHarmony: playHarmony,
+    playHarmonyMerged: playHarmonyMerged
 }

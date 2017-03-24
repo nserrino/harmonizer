@@ -29,15 +29,16 @@ window.onload = function () {
     var SONG_NAME = 'dancing_queen_tdc',
         SECONDS_PER_BEAT = 2,
         HARMONY_OCTAVE = 3,
-        MODEL = 'discrete_chords_hmm',
-        MELODY_VELOCITY = 70;
+        MODEL = 'discrete_numeric_lstm',
+        MELODY_VELOCITY = 70,
+        HARMONY_VELOCITY = 60;
 
     player.load({
         soundfontUrl: "/static/midi-js-soundfonts/FluidR3_GM/",
         instruments: ["acoustic_bass", "acoustic_guitar_nylon", "acoustic_grand_piano"],
         channels: {
             0: "acoustic_guitar_nylon",
-            1: "acoustic_bass"
+            1: "acoustic_grand_piano"
         }
     }, function(err) {
         $.ajax({
@@ -49,7 +50,7 @@ window.onload = function () {
                     url: '/harmony/generate_from_csv/' + MODEL + '/' + SONG_NAME,
                     success: function (harmony) {
                         player.playMelody(melody, SECONDS_PER_BEAT, MELODY_VELOCITY);
-                        // player.playHarmony(harmony, SECONDS_PER_BEAT, HARMONY_OCTAVE);
+                        player.playHarmonyMerged(harmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY);
                     }
                 });
             }
