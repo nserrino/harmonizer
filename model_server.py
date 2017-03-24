@@ -6,13 +6,16 @@ import pickle
 import random
 from flask import Flask, send_file, Response, request
 from keras.models import load_model
+from keras.utils.np_utils import to_categorical
 from transformation.resample_harmony_melody import resample_melody
 from transformation.rock_corpus_parser import parse_melody, BEATS, MELODY_ABS_PITCH
+from transformation.rock_corpus_parser import parse_harmony, HARMONY_KEY_TONIC
 
 app = Flask(__name__)
 
 CHORDS_LIST = 'supported_chords.json'
 ROCK_CORPUS_MELODIES = 'rock-corpus/rs200_melody_nlt'
+ROCK_CORPUS_HARMONIES = 'rock-corpus/rs200_harmony_clt'
 
 MODEL_PATHS = {
     # Takes in relative melody notes, outputs roman numeral harmony chords
@@ -20,7 +23,8 @@ MODEL_PATHS = {
     'discrete_chords_hmm':  'models/discrete_chords_hmm.pkl',
     # Takes in relative melody notes, outputs relative harmony notes
     # E.g. [0, 5, 0, 5]
-    'discrete_numeric_hmm': 'models/discrete_numeric_hmm.pkl'
+    'discrete_numeric_hmm': 'models/discrete_numeric_hmm.pkl',
+    'discrete_numeric_lstm': 'models/discrete_numeric_lstm.h5'
 }
 
 # Sequence length outputted by the endpoint, in beats.
@@ -60,6 +64,7 @@ def midi_notes_to_relative(sequence, offset):
     return [(s - offset) % 12 for s in sequence]
 
 
+# Returns notes relative to the key predicted by the model.
 def generate_hmm_sequence(sequence, model, is_roman_numeral):
     current = {
         'logprob': float("-inf"),
@@ -87,11 +92,28 @@ def generate_hmm_sequence(sequence, model, is_roman_numeral):
     return current
 
 
-def generate_lstm_sequence(sequence, model):
-    return
+# Returns notes relative to the input key, which is not predicted by this model.
+def generate_lstm_sequence(sequence, model, key):
+    if len(sequence) is not SEQUENCE_LENGTH:
+        raise Exception('Current LSTM implementation requires input of length ' + SEQUENCE_LENGTH)
+
+    result = {}
+    result['numeral'] = False
+
+    relative_sequence = midi_notes_to_relative(sequence, key)
+    categorical = to_categorical(relative_sequence, num_classes=12)
+    inputs = numpy.array([categorical.tolist()])
+    generated = model.predict(inputs, batch_size=32, verbose=1)
+    predicted_notes = []
+    for note_probabilities in generated[0]:
+        predicted = note_probabilities.tolist().index(max(note_probabilities))
+        predicted_notes.append(predicted)
+
+    result['sequence'] = predicted_notes
+    return result
 
 
-def generate_sequence(sequence, model_type):
+def generate_sequence(sequence, model_type, key=None):
     if model_type not in models:
         raise Exception("Model " + model_type + " does not exist on server")
 
@@ -99,7 +121,13 @@ def generate_sequence(sequence, model_type):
     if model_type.endswith('hmm'):
         return generate_hmm_sequence(sequence, model, "chords" in model_type)
     elif model_type.endswith('lstm'):
-        return generate_lstm_sequence(sequence, model)
+        return generate_lstm_sequence(sequence, model, key)
+
+
+def get_harmony_key(songname):
+    harmony_filepath = os.path.join(ROCK_CORPUS_HARMONIES, songname + '.clt')
+    harmony = parse_harmony(harmony_filepath)
+    return harmony[HARMONY_KEY_TONIC][0]
 
 
 @app.route('/harmony/generate_from_notes/<modelname>', methods=['POST'])
@@ -120,8 +148,15 @@ def generate_from_csv(modelname, songname):
         sample = resampled[i]
         input_sequence.append(sample[MIDI_NOTE])
 
-    result = generate_sequence(input_sequence, modelname)
+    key = get_harmony_key(songname)
+    # Pass the key in for LSTM models, which don't predict key
+    result = generate_sequence(input_sequence, modelname, key)
     result['start_beat'] = resampled[0][BEAT]
+
+    # Add in the key if we used a model that doesn't predict key.
+    if 'key' not in result:
+        result['key'] = key
+
     return Response(json.dumps(result), status=200, mimetype='application/json')
 
 

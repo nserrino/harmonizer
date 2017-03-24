@@ -69,6 +69,7 @@ if args.eval:
             print "Encountered error on", pair['song'], ": Skipping."
 
     testX, testY = prepare_samples(test_resamples, args.synth, args.timesteps)
+    print "THIS IS INPUTS", testX
     generated_harmonies = model.predict(testX, batch_size=32, verbose=1)
     print "Printing 10 generated harmonies: "
     for i in xrange(10):
