@@ -103,7 +103,6 @@ def generate_lstm_sequence(sequence, model, key):
     relative_sequence = midi_notes_to_relative(sequence, key)
     categorical = to_categorical(relative_sequence, num_classes=12)
     inputs = numpy.array([categorical.tolist()])
-    print inputs
     generated = model.predict(inputs, batch_size=32, verbose=1)
     predicted_notes = []
     for note_probabilities in generated[0]:
