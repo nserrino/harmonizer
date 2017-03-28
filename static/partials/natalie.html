@@ -25,7 +25,7 @@
     <script src="/static/js/node_modules/midi/js/util/dom_request_script.js" type="text/javascript"></script>
 </head>
 <body>
-<select id="brand-select" name="brand"></select>
+<select id="songs" name="songlist"></select>
 <button id="melody" onclick="playSong(this, false)">Melody only</button>
 <button id="lstm" onclick="playSong(this, true, 'discrete_numeric_lstm')">LSTM harmony</button>
 <button id="hmm" onclick="playSong(this, true, 'discrete_numeric_hmm')">HMM harmony</button>
@@ -41,11 +41,14 @@ var SONG_NAME = 'dancing_queen_tdc',
     songList = null;
 
 function playSong(btn, playHarmony, modelName) {
-    changeSong(SONG_NAME, modelName, function() {
+    var dropdown = document.getElementById('songs'),
+        songname = dropdown.value;
+
+    changeSong(songname, modelName, function() {
         var property = document.getElementById(btn.id);
         var oldBackground = property.style.backgroundColor;
 
-        property.style.backgroundColor = 'blue';
+        property.style.backgroundColor = '#504caf';
         player.playMelody(currentMelody, SECONDS_PER_BEAT, MELODY_VELOCITY);
         if (playHarmony) {
             player.playHarmonyMerged(currentHarmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY);
@@ -58,10 +61,6 @@ function playSong(btn, playHarmony, modelName) {
     });
 }
 
-function toggleDropdown() {
-    document.getElementById("songs").classList.toggle("show");
-}
-
 function getSongList() {
     $.ajax({
         type: 'get',
@@ -69,7 +68,7 @@ function getSongList() {
         success: function(songs) {
             songList = songs;
             Object.keys(songs).sort().forEach(function(prettyName) {
-                $('<option value="'+ songs[prettyName] +'">' + prettyName + '</option>').appendTo('#brand-select');
+                $('<option value="'+ songs[prettyName] +'">' + prettyName + '</option>').appendTo('#songs');
             });
         }
     });
@@ -80,11 +79,12 @@ function changeSong(songname, model, done) {
         type: 'get',
         url: '/melody/get_sequence/' + songname,
         success: function (melody) {
+            currentMelody = melody;
+            if (model == null) { return done(); }
             $.ajax({
                 type: 'get',
                 url: '/harmony/generate_from_csv/' + model + '/' + songname,
                 success: function (harmony) {
-                    currentMelody = melody;
                     currentHarmony = harmony;
                     done();
                 }
