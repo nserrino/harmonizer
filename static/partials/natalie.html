@@ -26,10 +26,11 @@
 </head>
 <body>
 <p id="demo"></p>
-<button id="melody" onclick="playMelody()">Melody only</button>
-<button id="lstm" onclick="playLSTM()">LSTM-generated harmony</button>
+<button id="melody" onclick="playSong(this, false)">Melody only</button>
+<button id="lstm" onclick="playSong(this, true)">LSTM-generated harmony</button>
 <script type="text/javascript">
 var SONG_NAME = 'dancing_queen_tdc',
+    BEATS = 30,
     SECONDS_PER_BEAT = 2,
     HARMONY_OCTAVE = 3,
     MODEL = 'discrete_numeric_lstm',
@@ -38,13 +39,18 @@ var SONG_NAME = 'dancing_queen_tdc',
     currentHarmony = null,
     currentMelody = null;
 
-function playMelody() {
+function playSong(btn, playHarmony) {
+    var property = document.getElementById(btn.id);
+    var oldBackground = property.style.backgroundColor;
+    property.style.backgroundColor = 'blue';
     player.playMelody(currentMelody, SECONDS_PER_BEAT, MELODY_VELOCITY);
-}
-
-function playLSTM() {
-    playMelody();
-    player.playHarmonyMerged(harmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY);
+    if (playHarmony) {
+        player.playHarmonyMerged(currentHarmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY);
+    }
+    var lastBeat = currentMelody[currentMelody.length - 1]['beat'];
+    setTimeout(function() {
+        property.style.backgroundColor = oldBackground;
+    }, lastBeat * SECONDS_PER_BEAT * 1000);
 }
 
 function myFunction() {

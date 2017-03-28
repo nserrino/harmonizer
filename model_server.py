@@ -182,9 +182,10 @@ def get_melody_sequence(songname):
     melody_filepath = os.path.join(ROCK_CORPUS_MELODIES, songname + '.nlt')
     melody = parse_melody(melody_filepath)
     melody_seq = []
+    start_melody_beat = melody.get_value(0, BEATS)
 
     for i, row in melody.iterrows():
-        if row[BEATS] > SEQUENCE_LENGTH:
+        if row[BEATS] > (start_melody_beat + SEQUENCE_LENGTH):
             break
         new_el = {}
         new_el[BEAT] = row[BEATS]
