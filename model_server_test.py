@@ -1,6 +1,6 @@
 import json
 from model_server import generate_sequence, generate_from_csv, get_melody_sequence, SEQUENCE_LENGTH
-from model_server import get_harmony_key
+from model_server import get_harmony_key, get_song_list
 
 
 def test_get_harmony_key():
@@ -42,4 +42,10 @@ def test_get_melody_sequence():
     result = json.loads(output.get_data())
     assert(result[0]['beat'] == 0.62)
     assert(result[0]['midi_note'] == 60)
-    assert(result[-1]['beat'] <= SEQUENCE_LENGTH)
+    assert(result[-1]['beat'] <= (SEQUENCE_LENGTH + result[0]['beat']))
+
+
+def test_get_song_list():
+    song_list = json.loads(get_song_list().get_data())
+    assert(len(song_list) == 19)
+    assert(song_list['My Girl'] == 'my_girl_tdc')

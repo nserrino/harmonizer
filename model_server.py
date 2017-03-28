@@ -1,4 +1,3 @@
-import io
 import json
 import numpy
 import os
@@ -16,6 +15,7 @@ app = Flask(__name__)
 CHORDS_LIST = 'supported_chords.json'
 ROCK_CORPUS_MELODIES = 'rock-corpus/rs200_melody_nlt'
 ROCK_CORPUS_HARMONIES = 'rock-corpus/rs200_harmony_clt'
+SONG_LIST = 'sample_song_names.json'
 
 MODEL_PATHS = {
     # Takes in relative melody notes, outputs roman numeral harmony chords
@@ -41,6 +41,10 @@ VELOCITY = 100
 
 f = open(CHORDS_LIST, 'r')
 chords = json.load(f)
+f.close()
+
+f = open(SONG_LIST, 'r')
+songs = json.load(f)
 f.close()
 
 models = {}
@@ -193,6 +197,11 @@ def get_melody_sequence(songname):
         melody_seq.append(new_el)
 
     return Response(json.dumps(melody_seq), status=200, mimetype='application/json')
+
+
+@app.route('/songs/get_song_list', methods=['GET'])
+def get_song_list():
+    return Response(json.dumps(songs), status=200, mimetype='application/json')
 
 
 if __name__ == "__main__":
