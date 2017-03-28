@@ -14,6 +14,7 @@ parser.add_argument("--model", help="Model path.", required=True)
 parser.add_argument("--harmony", help="Harmony files directory", required=True)
 parser.add_argument("--melody", help="Melody files directory", required=True)
 parser.add_argument('--timesteps', help="Number of timesteps in the model", type=int, required=True)
+parser.add_argument('--num_epochs', help="Number of epochs in the model", type=int, required=True)
 parser.add_argument('--test_set', help="JSON listing songs to hold out as test set")
 parser.add_argument("--train", help="Train the model", action="store_true")
 parser.add_argument("--eval", help="Evaluate the model", action="store_true")
@@ -45,31 +46,23 @@ for pair in training_pairs:
 trainX, trainY = prepare_samples(training_resamples, args.synth, args.timesteps)
 
 if (args.train):
-    model = train_model(args.timesteps, num_notes, trainX, trainY)
+    model = train_model(args.timesteps, num_notes, trainX, trainY, args.num_epochs)
     model.save(args.model)
 else:
     print "Skipping training, loading model from:", args.model
     model = load_model(args.model)
 
 if args.eval:
-    test_pairs = []
-    for song in test_set:
-        entry = {}
-        entry['harmony'] = song + HARMONY_EXT
-        entry['melody'] = song + MELODY_EXT
-        test_pairs.append(entry)
-
     test_resamples = []
-    for pair in test_pairs:
+    for song in test_set:
         try:
-            resample = resample_song(os.path.join(harmony_root, pair['harmony']),
-                                     os.path.join(melody_root, pair['melody']))
+            resample = resample_song(os.path.join(harmony_root, song + HARMONY_EXT),
+                                     os.path.join(melody_root, song + MELODY_EXT))
             test_resamples.append(resample)
         except Exception as e:
-            print "Encountered error on", pair['song'], ": Skipping."
+            print "Encountered error on", song, ": Skipping."
 
     testX, testY = prepare_samples(test_resamples, args.synth, args.timesteps)
-    print "THIS IS INPUTS", testX
     generated_harmonies = model.predict(testX, batch_size=32, verbose=1)
     print "Printing 10 generated harmonies: "
     for i in xrange(10):

@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html xmlns = "http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="/static/css/base.css">
+    <script src="/static/js/node_modules/jquery/dist/jquery.min.js"></script>
+    <script src="/static/js/bundle.js" type="text/javascript"></script>
+    <!-- polyfill -->
+    <script src="/static/js/node_modules/midi/inc/shim/Base64binary.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/inc/shim/WebAudioAPI.js" type="text/javascript"></script>
+    <!-- jasmid package -->
+    <script src="/static/js/node_modules/midi/inc/jasmid/stream.js"></script>
+    <script src="/static/js/node_modules/midi/inc/jasmid/midifile.js"></script>
+    <script src="/static/js/node_modules/midi/inc/jasmid/replayer.js"></script>
+    <!-- midi.js package -->
+    <script src="/static/js/node_modules/midi/js/midi/audioDetect.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/gm.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/loader.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/plugin.audiotag.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/plugin.webaudio.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/player.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/midi/plugin.webmidi.js" type="text/javascript"></script>
+    <!-- utils -->
+    <script src="/static/js/node_modules/midi/js/util/dom_request_xhr.js" type="text/javascript"></script>
+    <script src="/static/js/node_modules/midi/js/util/dom_request_script.js" type="text/javascript"></script>
+</head>
+<body>
+<p id="demo"></p>
+<button id="melody" onclick="playMelody()">Melody only</button>
+<button id="lstm" onclick="playLSTM()">LSTM-generated harmony</button>
+<script type="text/javascript">
+var SONG_NAME = 'dancing_queen_tdc',
+    SECONDS_PER_BEAT = 2,
+    HARMONY_OCTAVE = 3,
+    MODEL = 'discrete_numeric_lstm',
+    MELODY_VELOCITY = 70,
+    HARMONY_VELOCITY = 60,
+    currentHarmony = null,
+    currentMelody = null;
+
+function playMelody() {
+    player.playMelody(currentMelody, SECONDS_PER_BEAT, MELODY_VELOCITY);
+}
+
+function playLSTM() {
+    playMelody();
+    player.playHarmonyMerged(harmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY);
+}
+
+function myFunction() {
+    document.getElementById("demo").innerHTML += "Hello World";
+}
+
+window.onload = function () {
+    player.load({
+        soundfontUrl: "/static/midi-js-soundfonts/FluidR3_GM/",
+        instruments: ["acoustic_bass", "acoustic_guitar_nylon", "acoustic_grand_piano"],
+        channels: {
+            0: "acoustic_guitar_nylon",
+            1: "acoustic_grand_piano"
+        }
+    }, function(err) {
+        $.ajax({
+            type: 'get',
+            url: '/melody/get_sequence/' + SONG_NAME,
+            success: function (melody) {
+                $.ajax({
+                    type: 'get',
+                    url: '/harmony/generate_from_csv/' + MODEL + '/' + SONG_NAME,
+                    success: function (harmony) {
+                        currentMelody = melody;
+                        currentHarmony = harmony;
+                        // player.playMelody(melody, SECONDS_PER_BEAT, MELODY_VELOCITY);
+                        // player.playHarmonyMerged(harmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY);
+                    }
+                });
+            }
+        });
+    });
+};
+</script>
+</body>
+</html>

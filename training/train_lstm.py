@@ -43,11 +43,11 @@ def prepare_samples(resamples, synth, num_timesteps):
     return X, Y
 
 
-def train_model(num_timesteps, num_notes, X, Y):
+def train_model(num_timesteps, num_notes, X, Y, nb_epoch):
     inputs = Input(shape=(num_timesteps, num_notes))
     outputs = LSTM(num_notes, return_sequences=True)(inputs)
     harmony_generator = Model(inputs, outputs)
     harmony_generator.summary()
     harmony_generator.compile(loss='mse', optimizer='adam')
-    harmony_generator.fit(X, Y, batch_size=32, nb_epoch=100)
+    harmony_generator.fit(X, Y, batch_size=32, nb_epoch=nb_epoch)
     return harmony_generator

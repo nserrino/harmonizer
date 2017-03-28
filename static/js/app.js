@@ -125,6 +125,8 @@ function playHarmony(harmony, secondsPerBeat, harmonyOctave, velocity) {
 }
 
 module.exports = {
+    React: require('react'),
+    ReactDOM: require('react-dom'),
     createMidi: createMidi.createMidi,
     createMidiBase64: createMidi.createMidiBase64,
     load: load,
