@@ -52,11 +52,15 @@ function playSong(btn, playHarmony, modelName) {
         var oldBackground = property.style.backgroundColor;
 
         property.style.backgroundColor = '#504caf';
-        player.playMelody(currentMelody, SECONDS_PER_BEAT, MELODY_VELOCITY);
+
+        // Wait no more than 2 beats to start playing.
+        var offset = Math.max(Math.floor(currentMelody[0]['beat']) - 2, 0);
+        player.playMelody(currentMelody, SECONDS_PER_BEAT, MELODY_VELOCITY, offset);
+
         if (playHarmony) {
-            player.playHarmonyMerged(currentHarmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY);
+            player.playHarmony(currentHarmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY, offset);
         }
-        var lastBeat = currentMelody[currentMelody.length - 1]['beat'];
+        var lastBeat = currentMelody[currentMelody.length - 1]['beat'] - offset;
 
         setTimeout(function() {
             property.style.backgroundColor = oldBackground;
