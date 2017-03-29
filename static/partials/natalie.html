@@ -25,7 +25,10 @@
     <script src="/static/js/node_modules/midi/js/util/dom_request_script.js" type="text/javascript"></script>
 </head>
 <body>
+<h2>Auto-Harmonization with Maching Learning</h2>
+<p>Select a song from the dropdown:</p>
 <select id="songs" name="songlist"></select>
+<p>Press a play mode for the song:</p>
 <button id="melody" onclick="playSong(this, false)">Melody only</button>
 <button id="lstm" onclick="playSong(this, true, 'discrete_numeric_lstm')">LSTM harmony</button>
 <button id="hmm" onclick="playSong(this, true, 'discrete_numeric_hmm')">HMM harmony</button>
