@@ -25,7 +25,7 @@ def get_harmony_melody_pairs(harmony_filenames, melody_filenames):
     return pairs
 
 
-def resample_song(harmony_path, melody_path):
+def resample_song(harmony_path, melody_path, dedup_harmony=False):
     harmony = rock_corpus_parser.parse_harmony(harmony_path)
     melody = rock_corpus_parser.parse_melody(melody_path)
 
@@ -41,6 +41,16 @@ def resample_song(harmony_path, melody_path):
 
     for col_name in int_columns:
         output[col_name] = output[col_name].astype(int)
+
+    # Consolidate to one output record per harmony chord change.
+    # Melody notes will be dropped as a reuslt.
+    if dedup_harmony:
+        temp_col = 'temp'
+        output[temp_col] = output[rock_corpus_parser.HARMONY_REL_ROOT].diff()
+        # Include the first row (which will be set to NaN after the diff)
+        output.set_value(0, temp_col, 1)
+        output = output[output[temp_col] != 0]
+        output.drop(temp_col, axis=1, inplace=True)
 
     return output
 
@@ -70,8 +80,8 @@ def parse_and_write_song(harmony_path, melody_path, output_path, store_as_json):
 
 def resample_melody(location, beat_col, melody_col):
     input_values = pandas.read_csv(location, delimiter=r"\s+", header=None)
-    input_values = input_values.drop(input_values.columns[3], axis=1)
-    input_values = input_values.drop(input_values.columns[0], axis=1)
+    input_values.drop(input_values.columns[3], axis=1, inplace=True)
+    input_values.drop(input_values.columns[0], axis=1, inplace=True)
     input_values.columns = [beat_col, melody_col]
 
     input_values[melody_col] = input_values[melody_col].astype('float')

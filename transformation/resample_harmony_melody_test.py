@@ -17,3 +17,18 @@ def test_resample_song():
                 HARMONY_REL_ROOT, MELODY_ABS_PITCH, MELODY_REL_PITCH, ROMAN_NUMERAL]
     assert(columns == expected)
     assert(len(song) == 400)
+
+
+def test_resample_song_dedup_harmony():
+    song = resample_song(TEST_HARMONY, TEST_MELODY, True)
+    columns = song.columns.tolist()
+    expected = [BEATS, HARMONY_ABS_ROOT, HARMONY_DIATONIC_ROOT, HARMONY_KEY_TONIC,
+                HARMONY_REL_ROOT, MELODY_ABS_PITCH, MELODY_REL_PITCH, ROMAN_NUMERAL]
+    assert(columns == expected)
+    assert(len(song) == 95)
+
+    last = None
+    for index in xrange(len(song)):
+        val = song.get_value(index, ROMAN_NUMERAL)
+        assert(val != last)
+        last = val
