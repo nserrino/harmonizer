@@ -50,12 +50,12 @@ for song in test_set:
     except Exception as e:
         print "Encountered error on", pair['song'], ": Skipping."
 
-if args.model.endswith('lstm.h5'):
+if args.model.endswith('.h5'):
     model = load_model(args.model)
     testX, testY = prepare_samples(test_resamples, False, args.timesteps)
     generated_harmonies = model.predict(testX, batch_size=32, verbose=1)
     print get_lstm_result_distribution(generated_harmonies)
-elif args.model.endswith('hmm.pkl'):
+elif args.model.endswith('.pkl'):
     f = open(args.model, 'r')
     model = pickle.load(f)
     outputs = []
