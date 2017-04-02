@@ -15,6 +15,7 @@ parser.add_argument("--harmony", help="Harmony files directory", required=True)
 parser.add_argument("--melody", help="Melody files directory", required=True)
 parser.add_argument('--timesteps', help="Number of timesteps in the model", type=int, required=True)
 parser.add_argument('--num_epochs', help="Number of epochs in the model", type=int, required=True)
+parser.add_argument('--validation_split', help="Validation split", type=float, default=0.0)
 parser.add_argument('--test_set', help="JSON listing songs to hold out as test set")
 parser.add_argument("--train", help="Train the model", action="store_true")
 parser.add_argument("--eval", help="Evaluate the model", action="store_true")
@@ -38,7 +39,8 @@ training_resamples = []
 for pair in training_pairs:
     try:
         resample = resample_song(os.path.join(harmony_root, pair['harmony']),
-                                 os.path.join(melody_root, pair['melody']))
+                                 os.path.join(melody_root, pair['melody']),
+                                 True)
         training_resamples.append(resample)
     except Exception as e:
         print "Encountered error on training song", pair['song'], ": Skipping."
@@ -46,7 +48,8 @@ for pair in training_pairs:
 trainX, trainY = prepare_samples(training_resamples, args.synth, args.timesteps)
 
 if (args.train):
-    model = train_model(args.timesteps, num_notes, trainX, trainY, args.num_epochs)
+    model = train_model(args.timesteps, num_notes, trainX, trainY, args.num_epochs,
+                        args.validation_split)
     model.save(args.model)
 else:
     print "Skipping training, loading model from:", args.model
@@ -57,7 +60,8 @@ if args.eval:
     for song in test_set:
         try:
             resample = resample_song(os.path.join(harmony_root, song + HARMONY_EXT),
-                                     os.path.join(melody_root, song + MELODY_EXT))
+                                     os.path.join(melody_root, song + MELODY_EXT),
+                                     True)
             test_resamples.append(resample)
         except Exception as e:
             print "Encountered error on", song, ": Skipping."
