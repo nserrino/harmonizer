@@ -19,7 +19,7 @@ function load(params, done) {
 }
 
 // Pass in beatOffset > 0 if we want to fast forward through the "blank" beginning of a song.
-function playMelody(melody, secondsPerBeat, velocity, beatOffset) {
+function playMelody(melody, secondsPerBeat, velocity, beatOffset, maxSeconds) {
     for (var i = 0; i < melody.length; ++i) {
         var letterKey = 'C',
             beat = melody[i].beat - beatOffset,
@@ -30,6 +30,10 @@ function playMelody(melody, secondsPerBeat, velocity, beatOffset) {
             nextBeat = beat + 1;
         } else {
             nextBeat = melody[i + 1].beat - beatOffset;
+        }
+
+        if (maxSeconds != null && secondsPerBeat * nextBeat > maxSeconds) {
+            break;
         }
 
         MIDI.noteOn(0, melodyNote, velocity, secondsPerBeat * beat);
@@ -66,7 +70,7 @@ function bucketRepeatedChords(sequence) {
 }
 
 // Pass in beatOffset > 0 if we want to fast forward through the "blank" beginning of a song.
-function playHarmony(harmony, secondsPerBeat, harmonyOctave, velocity, beatOffset) {
+function playHarmony(harmony, secondsPerBeat, harmonyOctave, velocity, beatOffset, maxSeconds) {
     beatOffset = beatOffset == null ? 0 : beatOffset;
 
     var letterKey = constants.TONIC_INT_TO_STRING[harmony['key']],
@@ -82,6 +86,10 @@ function playHarmony(harmony, secondsPerBeat, harmonyOctave, velocity, beatOffse
         // Figure out the progression and then play the notes from that chord.
         var progression = tonal.progression.concrete(romanNumeral, letterKey),
             chord = tonal.chord.notes(progression[0]);
+
+        if (maxSeconds != null && secondsPerBeat * (currentBeat + duration) > maxSeconds) {
+            break;
+        }
 
         for (var j = 0; j < chord.length; ++j) {
             // Make sure to increase the octave up if our root note of the chord is "above" the

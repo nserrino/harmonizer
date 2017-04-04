@@ -24,7 +24,7 @@ MODEL_PATHS = {
     # Takes in relative melody notes, outputs relative harmony notes
     # E.g. [0, 5, 0, 5]
     'discrete_numeric_hmm': 'models/discrete_numeric_hmm.pkl',
-    'discrete_numeric_lstm': 'models/lstm_20timestep_dedup_harmony_100epoch.h5' #'models/discrete_numeric_lstm.h5'
+    'discrete_numeric_lstm': 'models/discrete_numeric_lstm.h5'
 }
 
 # Sequence length outputted by the endpoint, in beats.

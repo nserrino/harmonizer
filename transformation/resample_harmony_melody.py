@@ -52,7 +52,7 @@ def resample_song(harmony_path, melody_path, dedup_harmony=False):
         output = output[output[temp_col] != 0]
         output.drop(temp_col, axis=1, inplace=True)
 
-    return output
+    return output.reset_index(drop=True)
 
 
 def parse_and_write_song(harmony_path, melody_path, output_path, store_as_json):

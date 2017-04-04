@@ -73,7 +73,7 @@ def get_transition_matrix(harmonies, chords):
     return transitions / num_transitions[:, None]
 
 
-def get_emission_matrix(resamples, chords):
+def get_emission_matrix(resamples, chords=None):
     # For each chord, the probability of matching each melody note
     if chords is not None:
         emission = numpy.zeros(shape=(len(chords), NUM_NOTES))

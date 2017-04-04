@@ -29,9 +29,9 @@
 <p>Select a melody from the dropdown:</p>
 <select id="songs" name="songlist"></select>
 <p>Press a play mode for the song:</p>
-<button id="melody" onclick="playSong(this, false)">Melody only</button>
-<button id="lstm" onclick="playSong(this, true, 'discrete_numeric_lstm')">LSTM harmony</button>
-<button id="hmm" onclick="playSong(this, true, 'discrete_numeric_hmm')">HMM harmony</button>
+<button id="melody" onclick="playSong(this, false, null, 15)">Melody only</button>
+<button id="lstm" onclick="playSong(this, true, 'discrete_numeric_lstm', 40)">LSTM harmony</button>
+<button id="hmm" onclick="playSong(this, true, 'discrete_numeric_hmm', 40)">HMM harmony</button>
 <script type="text/javascript">
 var SONG_NAME = 'dancing_queen_tdc',
     SECONDS_PER_BEAT = 2,
@@ -42,7 +42,7 @@ var SONG_NAME = 'dancing_queen_tdc',
     currentMelody = null,
     songList = null;
 
-function playSong(btn, playHarmony, modelName) {
+function playSong(btn, playHarmony, modelName, timeLimit) {
     var dropdown = document.getElementById('songs'),
         songname = dropdown.value;
 
@@ -54,16 +54,17 @@ function playSong(btn, playHarmony, modelName) {
 
         // Wait no more than 2 beats to start playing.
         var offset = Math.max(Math.floor(currentMelody[0]['beat']) - 2, 0);
-        player.playMelody(currentMelody, SECONDS_PER_BEAT, MELODY_VELOCITY, offset);
+        player.playMelody(currentMelody, SECONDS_PER_BEAT, MELODY_VELOCITY, offset, timeLimit);
 
         if (playHarmony) {
-            player.playHarmony(currentHarmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY, offset);
+            player.playHarmony(currentHarmony, SECONDS_PER_BEAT, HARMONY_OCTAVE, HARMONY_VELOCITY,
+                               offset, timeLimit);
         }
         var lastBeat = currentMelody[currentMelody.length - 1]['beat'] - offset;
 
         setTimeout(function() {
             property.style.backgroundColor = oldBackground;
-        }, lastBeat * SECONDS_PER_BEAT * 1000);
+        }, (timeLimit != null ? timeLimit : lastBeat * SECONDS_PER_BEAT) * 1000);
     });
 }
 
