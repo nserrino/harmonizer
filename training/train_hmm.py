@@ -82,9 +82,10 @@ def get_emission_matrix(resamples, chords=None):
         emission = numpy.zeros(shape=(NUM_NOTES, NUM_NOTES))
         num_pairs = numpy.zeros(NUM_NOTES)
 
-    for resample in resamples:
+    for i in xrange(len(resamples)):
+        resample = resamples[i].dropna()
         for index, row in resample.iterrows():
-            rel_melody = row[rock_corpus_parser.MELODY_REL_PITCH]
+            rel_melody = int(row[rock_corpus_parser.MELODY_REL_PITCH])
 
             if chords is not None:
                 chord = row[rock_corpus_parser.ROMAN_NUMERAL]
@@ -93,7 +94,7 @@ def get_emission_matrix(resamples, chords=None):
                     emission[index][rel_melody] += 1
                     num_pairs[index] += 1
             else:
-                chord_root = row[rock_corpus_parser.HARMONY_REL_ROOT]
+                chord_root = int(row[rock_corpus_parser.HARMONY_REL_ROOT])
                 emission[chord_root][rel_melody] += 1
                 num_pairs[chord_root] += 1
 

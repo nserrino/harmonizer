@@ -8,7 +8,8 @@ from keras.utils.np_utils import to_categorical
 from transformation.rock_corpus_parser import MELODY_REL_PITCH, HARMONY_KEY_TONIC, HARMONY_REL_ROOT, HARMONY_ABS_ROOT
 from transformation.resample_harmony_melody import resample_song, get_harmony_melody_pairs
 
-def prepare_samples(resamples, synth, num_timesteps):
+
+def prepare_samples(resamples, synth, num_timesteps, return_chunks=False):
     X = []
     Y = []
 
@@ -30,7 +31,7 @@ def prepare_samples(resamples, synth, num_timesteps):
         num_chunks = len(curent_resample) / num_timesteps
         for j in xrange(num_chunks):
             chunk = curent_resample[j:(j + num_timesteps)]
-            chunked.append(chunk)
+            chunked.append(chunk.dropna())
     random.shuffle(chunked)
 
     for i in xrange(len(chunked)):
@@ -40,7 +41,10 @@ def prepare_samples(resamples, synth, num_timesteps):
         X.append(to_categorical(rel_mel, num_classes=12).tolist())
         Y.append(to_categorical(rel_har, num_classes=12).tolist())
 
-    return X, Y
+    if not return_chunks:
+        return X, Y
+    else:
+        return chunked, X, Y
 
 
 def train_model(num_timesteps, num_notes, X, Y, nb_epoch, validation_split=0.0):

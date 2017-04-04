@@ -1,12 +1,13 @@
 import argparse
 import json
+import numpy
 import os
 import pickle
 from keras.models import load_model
 
 from model_server import generate_hmm_sequence
 from profiling.profile_model import (get_training_set_distribution, get_lstm_result_distribution,
-                                     get_hmm_result_distribution)
+                                     get_hmm_result_distribution, get_result_emission_matrix)
 from transformation.rock_corpus_parser import HARMONY_EXT, MELODY_EXT, MELODY_REL_PITCH
 from transformation.resample_harmony_melody import get_harmony_melody_pairs, resample_song
 from training.train_lstm import prepare_samples
@@ -48,8 +49,8 @@ if args.distribution:
     print "Input distribution:", get_training_set_distribution(training_resamples)
 
 if args.emission:
-    print "Input emission matrix:", get_emission_matrix(training_resamples)
-    raise Exception('kdslafj')
+    emission = get_emission_matrix(training_resamples)
+    print "Input emission matrix:", emission
 
 test_resamples = []
 for song in test_set:
@@ -62,11 +63,21 @@ for song in test_set:
 
 if args.model.endswith('.h5'):
     model = load_model(args.model)
-    testX, testY = prepare_samples(test_resamples, False, args.timesteps)
+    chunked_resamples, testX, testY = prepare_samples(test_resamples, False, args.timesteps,
+                                                      return_chunks=True)
     generated_harmonies = model.predict(testX, batch_size=32, verbose=1)
 
     if args.distribution:
         print "LSTM distribution:", get_lstm_result_distribution(generated_harmonies)
+
+    if args.emission:
+        harmonies = []
+        for sequence in generated_harmonies:
+            # Convert from 1 hot representation
+            seq = [note_probs.tolist().index(max(note_probs)) for note_probs in sequence]
+            harmonies.append(seq)
+        lstm_emission = get_result_emission_matrix(chunked_resamples, harmonies)
+        print "LSTM emission matrix:", lstm_emission
 
 elif args.model.endswith('.pkl'):
     f = open(args.model, 'r')
@@ -79,5 +90,11 @@ elif args.model.endswith('.pkl'):
 
     if args.distribution:
         print "HMM distribution:", get_hmm_result_distribution(outputs)
+
+    if args.emission:
+        hmm_emission = emission = get_result_emission_matrix(test_resamples, outputs)
+        numpy.set_printoptions(suppress=True)
+        print "HMM emission matrix:", hmm_emission
+
 else:
     print "Unsupported model type:", model
